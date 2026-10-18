@@ -1,0 +1,1036 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG Workflow Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+body { margin: 0; }
+/* Layout: one reading column; a wide overview diagram, then three numbered pipelines,
+   each colour-coded (ingest = teal, search = blue, generate = amber) on a vertical rail. */
+:root {
+  --bg: #f4f6f7;
+  --surface: #ffffff;
+  --fg: #16212a;
+  --muted: #586773;
+  --line: #d5dce1;
+  --ingest: #0d7a6a;
+  --search: #2d58cc;
+  --generate: #a95207;
+  --ingest-soft: #e2f3f0;
+  --search-soft: #e6ecfb;
+  --generate-soft: #fbeedf;
+  --code-bg: #eef1f3;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1418; --surface: #172027; --fg: #e2e8ec; --muted: #93a1ab; --line: #2b3741;
+    --ingest: #45c2ad; --search: #86a4ff; --generate: #f0a456;
+    --ingest-soft: #15302c; --search-soft: #1b2643; --generate-soft: #33251a;
+    --code-bg: #1f2a33; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1418; --surface: #172027; --fg: #e2e8ec; --muted: #93a1ab; --line: #2b3741;
+  --ingest: #45c2ad; --search: #86a4ff; --generate: #f0a456;
+  --ingest-soft: #15302c; --search-soft: #1b2643; --generate-soft: #33251a;
+  --code-bg: #1f2a33; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.6 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+.page { max-width: 980px; margin: 0 auto; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.25; }
+h1 { font-size: 2.1rem; font-weight: 700; margin: 40px 0 8px; letter-spacing: -0.01em; }
+h2 { font-size: 1.45rem; font-weight: 600; margin: 0; }
+h3 { font-size: 1.05rem; font-weight: 600; margin: 0; }
+p { margin: 0; }
+.lead { color: var(--muted); max-width: 68ch; }
+code, .mono { font-family: var(--font-mono); font-size: 0.88em; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+a { color: var(--search); }
+a:focus-visible { outline: 2px solid var(--search); outline-offset: 2px; border-radius: 3px; }
+
+.eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+/* ---------- jump links ---------- */
+.jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 28px; }
+.jump a {
+  text-decoration: none; font-weight: 500; font-size: 0.9rem;
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+.dot.ingest { background: var(--ingest); } .dot.search { background: var(--search); } .dot.generate { background: var(--generate); }
+
+/* ---------- overview diagram ---------- */
+.overview { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+.overview-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; align-items: baseline; margin-bottom: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.85rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.diagram-scroll { overflow-x: auto; }
+.diagram-scroll svg { display: block; width: 100%; min-width: 760px; height: auto; }
+
+svg .box { fill: var(--surface); stroke-width: 1.5; }
+svg .box.ingest { stroke: var(--ingest); } svg .box.search { stroke: var(--search); } svg .box.generate { stroke: var(--generate); }
+svg .box.store { fill: var(--code-bg); }
+svg .t { fill: var(--fg); font: 600 13px var(--font-body); }
+svg .f { fill: var(--muted); font: 400 10px var(--font-mono); }
+svg .lane { font: 600 11px var(--font-body); letter-spacing: 0.08em; }
+svg .lane.ingest { fill: var(--ingest); } svg .lane.search { fill: var(--search); } svg .lane.generate { fill: var(--generate); }
+svg .arrow { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+svg .loop { stroke: var(--generate); stroke-width: 1.3; fill: none; stroke-dasharray: 4 3; }
+svg .loop-label { fill: var(--generate); font: 500 11px var(--font-body); }
+svg .head { fill: var(--muted); }
+svg .head.gen { fill: var(--generate); }
+svg .tag { font: 500 9.5px var(--font-body); fill: var(--muted); }
+
+svg .box.ragbox { stroke: var(--fg); stroke-width: 1.5; }
+svg .t.big { font-size: 17px; font-weight: 700; }
+svg .b { fill: var(--fg); font: 400 12px var(--font-body); }
+svg .badge { fill: var(--fg); }
+svg .badge-t { fill: var(--surface); font: 700 15px var(--font-body); }
+svg .lane { fill: var(--muted); }
+.rag .lead b { color: var(--fg); }
+.rag-table td.yes { color: var(--ingest); font-weight: 700; text-align: center; }
+.rag-table td.no { color: var(--muted); text-align: center; }
+.rag-table th:nth-child(n+2):nth-child(-n+4) { text-align: center; }
+.rag-table td:first-child { font-family: var(--font-body); font-weight: 600; font-size: 0.88rem; }
+svg .fbox { stroke-width: 1.2; }
+svg .fbox.store, svg .band { fill: var(--code-bg); }
+svg .band { stroke: var(--line); stroke-width: 1; }
+svg .skip { fill: none; stroke: var(--line); stroke-width: 1.2; stroke-dasharray: 5 4; }
+svg .fn2 { fill: var(--fg); font: 500 11px var(--font-mono); }
+svg .fn3 { fill: var(--fg); font: 500 10px var(--font-mono); }
+svg .sub { fill: var(--muted); font: 400 10px var(--font-body); }
+svg .rule { stroke: var(--line); stroke-width: 1; }
+svg .arrow.dashed { stroke-dasharray: 4 3; }
+svg .badge-t.sm { font-size: 12px; }
+.sw { width: 14px; height: 10px; border-radius: 3px; display: inline-block; }
+.store-sw { background: var(--code-bg); border: 1px solid var(--muted); }
+.skip-sw { border: 1px dashed var(--muted); }
+svg .ent { fill: var(--surface); stroke-width: 1.5; }
+svg .ent.pdf { stroke: var(--muted); }
+svg .ent.logical { stroke-dasharray: 5 4; }
+svg .ent.docs { stroke: var(--ingest); }
+svg .ent.qs { stroke: var(--generate); }
+svg .ent-head.pdf { fill: var(--code-bg); }
+svg .ent-head.docs { fill: var(--ingest-soft); }
+svg .ent-head.qs { fill: var(--generate-soft); }
+svg .ent-title { fill: var(--fg); font: 700 13px var(--font-mono); }
+svg .ent-sub { fill: var(--muted); font: 400 10px var(--font-body); }
+svg .row-line { stroke: var(--line); stroke-width: 1; }
+svg .fname { fill: var(--fg); font: 400 11px var(--font-mono); }
+svg .fname.bold { font-weight: 600; }
+svg .ftype { fill: var(--muted); font: 400 10px var(--font-mono); }
+svg .key { font: 700 9px var(--font-mono); }
+svg .key.pk { fill: var(--generate); }
+svg .key.fk { fill: var(--search); }
+svg .rel { stroke: var(--fg); stroke-width: 1.4; fill: none; }
+svg .rel.copy { stroke: var(--muted); stroke-dasharray: 5 4; }
+svg .er-head { fill: var(--muted); }
+svg .rel-label { fill: var(--fg); font: 600 11px var(--font-body); }
+svg .rel-sub { fill: var(--muted); font: 400 10px var(--font-body); }
+.k { font-family: var(--font-mono); font-size: 0.72rem; padding: 0 4px; border-radius: 3px; }
+.k.pk { color: var(--generate); background: var(--generate-soft); }
+.k.fk { color: var(--search); background: var(--search-soft); }
+.er-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 16px; }
+.er-facts div { border-top: 1px solid var(--line); padding-top: 10px; min-width: 0; }
+.er-facts b { display: block; font-size: 0.9rem; }
+.er-facts p { font-size: 0.88rem; color: var(--muted); }
+.er-h { margin: 24px 0 0; }
+.er-table td:first-child { white-space: nowrap; }
+.er-table td:nth-child(3) { color: var(--muted); font-size: 0.82rem; max-width: 260px; }
+.er-table td:nth-child(2) { white-space: nowrap; font-family: var(--font-mono); font-size: 0.8rem; }
+.shared { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: 16px; }
+.shared div { border-top: 1px solid var(--line); padding-top: 10px; min-width: 0; }
+.shared p { font-size: 0.88rem; color: var(--muted); }
+.shared b { display: block; font-weight: 600; font-size: 0.9rem; color: var(--fg); }
+
+/* ---------- pipelines ---------- */
+.pipeline { margin-top: 56px; scroll-margin-top: 16px; }
+.pipe-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 6px; }
+.pipe-num {
+  flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+  font-weight: 700; font-size: 1.15rem; color: var(--surface);
+}
+.ingest .pipe-num { background: var(--ingest); } .search .pipe-num { background: var(--search); } .generate .pipe-num { background: var(--generate); }
+.pipe-head .lead { margin-top: 4px; }
+.where { font-size: 0.88rem; color: var(--muted); margin: 10px 0 20px 54px; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.step { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; }
+.rail { position: relative; display: flex; justify-content: center; }
+.rail::after { content: ""; position: absolute; top: 34px; bottom: -2px; width: 2px; }
+.ingest .rail::after { background: var(--ingest-soft); } .search .rail::after { background: var(--search-soft); } .generate .rail::after { background: var(--generate-soft); }
+.step:last-child .rail::after { display: none; }
+.step-num {
+  position: relative; z-index: 1; width: 30px; height: 30px; border-radius: 50%; margin-top: 4px;
+  display: grid; place-items: center; font-weight: 600; font-size: 0.85rem; font-variant-numeric: tabular-nums;
+  background: var(--surface); border: 2px solid;
+}
+.ingest .step-num { border-color: var(--ingest); color: var(--ingest); }
+.search .step-num { border-color: var(--search); color: var(--search); }
+.generate .step-num { border-color: var(--generate); color: var(--generate); }
+
+.step-body { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; display: grid; gap: 8px; min-width: 0; }
+.step-body p { max-width: 72ch; }
+.fns { display: flex; flex-wrap: wrap; gap: 6px; }
+.fn {
+  font-family: var(--font-mono); font-size: 0.8rem; padding: 3px 8px; border-radius: 6px;
+  background: var(--code-bg); color: var(--fg); overflow-wrap: anywhere;
+}
+.fn .file { color: var(--muted); }
+.io { font-size: 0.85rem; color: var(--muted); display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 10px; }
+.io dt { font-weight: 600; color: var(--muted); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; padding-top: 2px; }
+.io dd { margin: 0; color: var(--fg); }
+.note { font-size: 0.85rem; border-left: 3px solid; padding: 4px 10px; border-radius: 0 6px 6px 0; }
+.generate .note { border-color: var(--generate); background: var(--generate-soft); }
+.search .note { border-color: var(--search); background: var(--search-soft); }
+.ingest .note { border-color: var(--ingest); background: var(--ingest-soft); }
+
+/* ---------- worked example ---------- */
+.example { margin: 6px 0 0 54px; border: 1px dashed var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 8px; }
+.example pre {
+  margin: 0; font: 0.8rem/1.55 var(--font-mono); background: var(--code-bg); padding: 10px 12px; border-radius: 8px;
+  overflow-x: auto; white-space: pre;
+}
+
+/* ---------- file table ---------- */
+.files { margin-top: 56px; }
+.table-scroll { overflow-x: auto; margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+th { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+td:first-child { font-family: var(--font-mono); font-size: 0.82rem; white-space: nowrap; }
+td .fn { margin: 0 4px 4px 0; display: inline-block; }
+
+@media (max-width: 560px) {
+  h1 { font-size: 1.65rem; }
+  .where, .example { margin-left: 0; }
+  .step { grid-template-columns: 30px minmax(0, 1fr); gap: 10px; }
+  .step-num { width: 26px; height: 26px; font-size: 0.78rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header>
+    <p class="eyebrow" style="margin-top:40px">RagBasedWebApplication · Python · LangChain · ChromaDB · Ollama</p>
+    <h1 style="margin-top:6px">How the RAG app works</h1>
+    <p class="lead">Three pipelines share one ChromaDB database. A PDF is processed and stored once.
+      Semantic search and question generation both read from what was stored.
+      Each step below names the file and the function that does the work.</p>
+    <nav class="jump" aria-label="Sections">
+      <a href="#rag">RAG at a glance</a>
+      <a href="#rag-functions">RAG function map</a>
+      <a href="#overview">Overview</a>
+      <a href="#ingest"><span class="dot ingest"></span>1 · Document processing</a>
+      <a href="#search"><span class="dot search"></span>2 · Semantic search</a>
+      <a href="#generate"><span class="dot generate"></span>3 · Question generation</a>
+      <a href="#database">Database ER diagram</a>
+      <a href="#files">Function index</a>
+    </nav>
+  </header>
+
+  <!-- ================= RAG AT A GLANCE ================= -->
+  <section class="overview rag" id="rag" aria-labelledby="rag-title">
+    <div class="overview-head">
+      <h2 id="rag-title">RAG at a glance</h2>
+      <p class="legend">Retrieve · Augment · Generate</p>
+    </div>
+    <p class="lead" style="margin-bottom:16px">The LLM never answers from its own memory. The app first <b>retrieves</b> passages from the PDF stored in ChromaDB, <b>augments</b> the prompt with them, and only then lets the LLM <b>generate</b>. That is why every answer can point back to a page.</p>
+
+    <div class="diagram-scroll">
+      <svg viewBox="0 0 990 392" role="img" aria-label="RAG usage: PDF indexed into ChromaDB; Retrieve passages, Augment the prompt, Generate with gemma3:4b; semantic search uses Retrieve only, question generation uses all three">
+        <defs>
+          <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path class="head" d="M0,0 L10,5 L0,10 z"/>
+          </marker>
+        </defs>
+
+        <!-- Row 1: indexing -->
+        <text class="lane ingest" x="0" y="14">INDEXING · ONCE PER PDF</text>
+        <rect class="box ingest" x="0"   y="24" width="160" height="52" rx="8"/>
+        <text class="t" x="12" y="46">PDF</text><text class="f" x="12" y="64">samples/*.pdf</text>
+        <rect class="box ingest" x="190" y="24" width="160" height="52" rx="8"/>
+        <text class="t" x="202" y="46">Read + clean</text><text class="f" x="202" y="64">load_pdf()</text>
+        <rect class="box ingest" x="380" y="24" width="160" height="52" rx="8"/>
+        <text class="t" x="392" y="46">Chunk + page no.</text><text class="f" x="392" y="64">split_into_chunks()</text>
+        <rect class="box ingest" x="570" y="24" width="160" height="52" rx="8"/>
+        <text class="t" x="582" y="46">Embed</text><text class="f" x="582" y="64">nomic-embed-text</text>
+        <rect class="box ingest store" x="760" y="24" width="230" height="52" rx="8"/>
+        <text class="t" x="772" y="46">ChromaDB "documents"</text><text class="f" x="772" y="64">vectors + text + page</text>
+        <line class="arrow" x1="160" y1="50" x2="188" y2="50" marker-end="url(#ah2)"/>
+        <line class="arrow" x1="350" y1="50" x2="378" y2="50" marker-end="url(#ah2)"/>
+        <line class="arrow" x1="540" y1="50" x2="568" y2="50" marker-end="url(#ah2)"/>
+        <line class="arrow" x1="730" y1="50" x2="758" y2="50" marker-end="url(#ah2)"/>
+
+        <!-- ChromaDB feeds Retrieve -->
+        <path class="arrow" d="M875,76 L875,104 L150,104 L150,132" marker-end="url(#ah2)"/>
+        <text class="tag" x="170" y="98">relevant passages</text>
+
+        <!-- Row 2: R / A / G -->
+        <text class="lane" x="0" y="124" style="fill:var(--muted)">EVERY REQUEST</text>
+
+        <rect class="box ragbox" x="0" y="134" width="300" height="136" rx="10"/>
+        <circle class="badge" cx="26" cy="160" r="15"/><text class="badge-t" x="26" y="165" text-anchor="middle">R</text>
+        <text class="t big" x="50" y="166">Retrieve</text>
+        <text class="b" x="16" y="196">Search: chunks nearest to the query</text>
+        <text class="f" x="16" y="213">embed_query() → similarity_search()</text>
+        <text class="b" x="16" y="240">Questions: passages across the PDF</text>
+        <text class="f" x="16" y="257">get_chunks() → candidate_passages()</text>
+
+        <rect class="box ragbox" x="345" y="134" width="300" height="136" rx="10"/>
+        <circle class="badge" cx="371" cy="160" r="15"/><text class="badge-t" x="371" y="165" text-anchor="middle">A</text>
+        <text class="t big" x="395" y="166">Augment</text>
+        <text class="b" x="361" y="196">Put the passage into the prompt</text>
+        <text class="f" x="361" y="213">QUESTION_PROMPT  (context = passage)</text>
+        <text class="b" x="361" y="240">Rule: use ONLY this text, quote it</text>
+        <text class="f" x="361" y="257">VERIFY_PROMPT  (blind check)</text>
+
+        <rect class="box ragbox" x="690" y="134" width="300" height="136" rx="10"/>
+        <circle class="badge" cx="716" cy="160" r="15"/><text class="badge-t" x="716" y="165" text-anchor="middle">G</text>
+        <text class="t big" x="740" y="166">Generate</text>
+        <text class="b" x="706" y="196">LLM writes from the passage</text>
+        <text class="f" x="706" y="213">get_llm() · Ollama gemma3:4b</text>
+        <text class="b" x="706" y="240">JSON question, then checked twice</text>
+        <text class="f" x="706" y="257">_find_problem() · _blind_answer_matches()</text>
+
+        <line class="arrow" x1="300" y1="202" x2="343" y2="202" marker-end="url(#ah2)"/>
+        <line class="arrow" x1="645" y1="202" x2="688" y2="202" marker-end="url(#ah2)"/>
+
+        <!-- Row 3: what each feature uses -->
+        <path class="arrow" d="M150,270 L150,318" marker-end="url(#ah2)"/>
+        <rect class="box search" x="0" y="320" width="300" height="62" rx="8"/>
+        <text class="t" x="14" y="344">Semantic Search page</text>
+        <text class="b" x="14" y="366">uses R only · passage + page + score</text>
+
+        <path class="arrow" d="M840,270 L840,318" marker-end="url(#ah2)"/>
+        <rect class="box generate" x="690" y="320" width="300" height="62" rx="8"/>
+        <text class="t" x="704" y="344">Quiz page · 5 MCQs</text>
+        <text class="b" x="704" y="366">uses R + A + G · saved in "questions"</text>
+      </svg>
+    </div>
+
+    <div class="table-scroll" style="margin-top:16px">
+      <table class="rag-table">
+        <thead><tr><th>Feature</th><th>R · Retrieve</th><th>A · Augment</th><th>G · Generate</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Semantic search</td><td class="yes">✓</td><td class="no">–</td><td class="no">–</td><td>Matching passages with page number, or “Not found in the document”</td></tr>
+          <tr><td>Question generation</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td>5 verified MCQs, each with answer, explanation, quote and page</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div style="height:24px"></div>
+
+
+  <!-- ================= RAG FUNCTION MAP ================= -->
+  <section class="overview" id="rag-functions" aria-labelledby="rf-title">
+    <div class="overview-head">
+      <h2 id="rf-title">RAG function map</h2>
+      <div class="legend">
+        <span><span class="sw store-sw"></span>reads / writes ChromaDB</span>
+        <span><span class="sw skip-sw"></span>stage not used</span>
+      </div>
+    </div>
+    <p class="lead" style="margin-bottom:16px">Every function on the RAG path, in the order it is called. Read each column top to bottom, then follow the arrow to the next stage.</p>
+    <div class="diagram-scroll">
+      <svg viewBox="0 0 990 712" role="img" aria-label="RAG function map: indexing, retrieve, augment, generate and output functions for semantic search and question generation">
+        <defs>
+          <marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="head" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="ahg3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="head gen" d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
+        <text class="lane ingest" x="0" y="14">INDEXING · ONCE PER PDF</text>
+        <rect class="box fbox ingest" x="0" y="22" width="128" height="38" rx="6"/>
+        <text class="fn3" x="8" y="38">ingest_pdf()</text><text class="sub" x="8" y="53">ingestion.py</text>
+        <rect class="box fbox ingest" x="143" y="22" width="128" height="38" rx="6"/>
+        <text class="fn3" x="151" y="38">process_pdf()</text><text class="sub" x="151" y="53">document_processor.py</text>
+        <line class="arrow" x1="128" y1="41" x2="142" y2="41" marker-end="url(#ah3)"/>
+        <rect class="box fbox ingest" x="286" y="22" width="128" height="38" rx="6"/>
+        <text class="fn3" x="294" y="38">load_pdf()</text><text class="sub" x="294" y="53">pypdf · keeps page no.</text>
+        <line class="arrow" x1="271" y1="41" x2="285" y2="41" marker-end="url(#ah3)"/>
+        <rect class="box fbox ingest" x="429" y="22" width="128" height="38" rx="6"/>
+        <text class="fn3" x="437" y="38">clean_text()</text><text class="sub" x="437" y="53">bullets · wrapped lines</text>
+        <line class="arrow" x1="414" y1="41" x2="428" y2="41" marker-end="url(#ah3)"/>
+        <rect class="box fbox ingest" x="572" y="22" width="128" height="38" rx="6"/>
+        <text class="fn3" x="580" y="38">split_into_chunks()</text><text class="sub" x="580" y="53">500 chars · 80 overlap</text>
+        <line class="arrow" x1="557" y1="41" x2="571" y2="41" marker-end="url(#ah3)"/>
+        <rect class="box fbox ingest" x="715" y="22" width="128" height="38" rx="6"/>
+        <text class="fn3" x="723" y="38">save_chunks()</text><text class="sub" x="723" y="53">vector_store.py</text>
+        <line class="arrow" x1="700" y1="41" x2="714" y2="41" marker-end="url(#ah3)"/>
+        <rect class="box fbox ingest" x="858" y="22" width="128" height="38" rx="6"/>
+        <text class="fn3" x="866" y="38">embed_documents()</text><text class="sub" x="866" y="53">nomic-embed-text</text>
+        <line class="arrow" x1="843" y1="41" x2="857" y2="41" marker-end="url(#ah3)"/>
+        <line class="arrow" x1="922" y1="60" x2="922" y2="86" marker-end="url(#ah3)"/>
+        <rect class="box band" x="0" y="88" width="990" height="34" rx="8"/>
+        <text class="t" x="16" y="110">ChromaDB  (chroma_db/)</text>
+        <text class="sub" x="200" y="110">"documents": chunk text + vector + page   ·   "questions": stored MCQs   ·   grey boxes below read or write it</text>
+        <circle class="badge" cx="12" cy="156" r="12"/><text class="badge-t sm" x="12" y="160" text-anchor="middle">R</text>
+        <text class="t" x="32" y="161">RETRIEVE</text>
+        <line class="rule" x1="0" y1="176" x2="228" y2="176"/>
+        <circle class="badge" cx="266" cy="156" r="12"/><text class="badge-t sm" x="266" y="160" text-anchor="middle">A</text>
+        <text class="t" x="286" y="161">AUGMENT</text>
+        <line class="rule" x1="254" y1="176" x2="482" y2="176"/>
+        <circle class="badge" cx="520" cy="156" r="12"/><text class="badge-t sm" x="520" y="160" text-anchor="middle">G</text>
+        <text class="t" x="540" y="161">GENERATE</text>
+        <line class="rule" x1="508" y1="176" x2="736" y2="176"/>
+        <text class="t" x="762" y="161">OUTPUT</text>
+        <line class="rule" x1="762" y1="176" x2="990" y2="176"/>
+        <text class="lane search" x="0" y="202">SEMANTIC SEARCH  ·  /search  ·  uses R only</text>
+        <rect class="box fbox search" x="0" y="212" width="228" height="38" rx="6"/>
+        <text class="fn2" x="10" y="228">search(query)</text>
+        <text class="sub" x="10" y="243">semantic_search.py · top_k = 4</text>
+        <rect class="box fbox search store" x="0" y="262" width="228" height="38" rx="6"/>
+        <text class="fn2" x="10" y="278">similarity_search()</text>
+        <text class="sub" x="10" y="293">nearest chunks · cosine score</text>
+        <line class="arrow" x1="16" y1="250" x2="16" y2="261" marker-end="url(#ah3)"/>
+        <rect class="box fbox search" x="0" y="312" width="228" height="38" rx="6"/>
+        <text class="fn2" x="10" y="328">embed_query()</text>
+        <text class="sub" x="10" y="343">search_query: prefix</text>
+        <line class="arrow" x1="16" y1="300" x2="16" y2="311" marker-end="url(#ah3)"/>
+        <rect class="box fbox search" x="0" y="362" width="228" height="38" rx="6"/>
+        <text class="fn2" x="10" y="378">keep score ≥ 0.60</text>
+        <text class="sub" x="10" y="393">none left → “Not found”</text>
+        <line class="arrow" x1="16" y1="350" x2="16" y2="361" marker-end="url(#ah3)"/>
+        <rect class="box skip" x="254" y="212" width="228" height="188" rx="6"/>
+        <text class="sub" x="368.0" y="304" text-anchor="middle">not used</text>
+        <text class="sub" x="368.0" y="320" text-anchor="middle">the stored passage is shown as-is</text>
+        <rect class="box skip" x="508" y="212" width="228" height="188" rx="6"/>
+        <text class="sub" x="622.0" y="304" text-anchor="middle">not used</text>
+        <text class="sub" x="622.0" y="320" text-anchor="middle">the stored passage is shown as-is</text>
+        <rect class="box fbox search" x="762" y="212" width="228" height="38" rx="6"/>
+        <text class="fn2" x="772" y="228">SearchResult</text>
+        <text class="sub" x="772" y="243">text · source · page · score</text>
+        <rect class="box fbox search" x="762" y="262" width="228" height="38" rx="6"/>
+        <text class="fn2" x="772" y="278">search_page()</text>
+        <text class="sub" x="772" y="293">main.py · or api_search()</text>
+        <line class="arrow" x1="778" y1="250" x2="778" y2="261" marker-end="url(#ah3)"/>
+        <rect class="box fbox search" x="762" y="312" width="228" height="38" rx="6"/>
+        <text class="fn2" x="772" y="328">search.html</text>
+        <text class="sub" x="772" y="343">passage + page badge + score</text>
+        <line class="arrow" x1="778" y1="300" x2="778" y2="311" marker-end="url(#ah3)"/>
+        <line class="arrow dashed" x1="228" y1="231" x2="253" y2="231" marker-end="url(#ah3)"/>
+        <line class="arrow dashed" x1="482" y1="231" x2="507" y2="231" marker-end="url(#ah3)"/>
+        <line class="arrow" x1="736" y1="231" x2="761" y2="231" marker-end="url(#ah3)"/>
+        <text class="lane generate" x="0" y="434">QUESTION GENERATION  ·  /questions  ·  uses R + A + G</text>
+        <rect class="box fbox generate" x="0" y="444" width="228" height="38" rx="6"/>
+        <text class="fn2" x="10" y="460">generate_questions()</text>
+        <text class="sub" x="10" y="475">question_generator.py · 5 MCQs</text>
+        <rect class="box fbox generate store" x="0" y="494" width="228" height="38" rx="6"/>
+        <text class="fn2" x="10" y="510">get_chunks(source)</text>
+        <text class="sub" x="10" y="525">all passages of the PDF</text>
+        <line class="arrow" x1="16" y1="482" x2="16" y2="493" marker-end="url(#ah3)"/>
+        <rect class="box fbox generate" x="0" y="544" width="228" height="38" rx="6"/>
+        <text class="fn2" x="10" y="560">candidate_passages()</text>
+        <text class="sub" x="10" y="575">5 spread out + backups</text>
+        <line class="arrow" x1="16" y1="532" x2="16" y2="543" marker-end="url(#ah3)"/>
+        <rect class="box fbox generate" x="254" y="444" width="228" height="38" rx="6"/>
+        <text class="fn2" x="264" y="460">generate_one(chunk)</text>
+        <text class="sub" x="264" y="475">up to 3 tries per passage</text>
+        <rect class="box fbox generate" x="254" y="494" width="228" height="38" rx="6"/>
+        <text class="fn2" x="264" y="510">_draft_question()</text>
+        <text class="sub" x="264" y="525">passage → prompt</text>
+        <line class="arrow" x1="270" y1="482" x2="270" y2="493" marker-end="url(#ah3)"/>
+        <rect class="box fbox generate" x="254" y="544" width="228" height="38" rx="6"/>
+        <text class="fn2" x="264" y="560">QUESTION_PROMPT</text>
+        <text class="sub" x="264" y="575">context · page · source · rules</text>
+        <line class="arrow" x1="270" y1="532" x2="270" y2="543" marker-end="url(#ah3)"/>
+        <rect class="box fbox generate" x="254" y="594" width="228" height="38" rx="6"/>
+        <text class="fn2" x="264" y="610">VERIFY_PROMPT</text>
+        <text class="sub" x="264" y="625">context · question · options</text>
+        <line class="arrow" x1="270" y1="582" x2="270" y2="593" marker-end="url(#ah3)"/>
+        <rect class="box fbox generate" x="508" y="444" width="228" height="38" rx="6"/>
+        <text class="fn2" x="518" y="460">get_llm()</text>
+        <text class="sub" x="518" y="475">ChatOllama · gemma3:4b</text>
+        <rect class="box fbox generate" x="508" y="494" width="228" height="38" rx="6"/>
+        <text class="fn2" x="518" y="510">llm.with_structured_output()</text>
+        <text class="sub" x="518" y="525">→ QuestionDraft JSON</text>
+        <line class="arrow" x1="524" y1="482" x2="524" y2="493" marker-end="url(#ah3)"/>
+        <rect class="box fbox generate" x="508" y="544" width="228" height="38" rx="6"/>
+        <text class="fn2" x="518" y="560">_clean() · _find_problem()</text>
+        <text class="sub" x="518" y="575">labels · rules · quote in passage</text>
+        <line class="arrow" x1="524" y1="532" x2="524" y2="543" marker-end="url(#ah3)"/>
+        <rect class="box fbox generate" x="508" y="594" width="228" height="38" rx="6"/>
+        <text class="fn2" x="518" y="610">_shuffled_options()</text>
+        <text class="sub" x="518" y="625">random A–D order</text>
+        <line class="arrow" x1="524" y1="582" x2="524" y2="593" marker-end="url(#ah3)"/>
+        <rect class="box fbox generate" x="508" y="644" width="228" height="38" rx="6"/>
+        <text class="fn2" x="518" y="660">_blind_answer_matches()</text>
+        <text class="sub" x="518" y="675">BlindAnswer must equal the key</text>
+        <line class="arrow" x1="524" y1="632" x2="524" y2="643" marker-end="url(#ah3)"/>
+        <rect class="box fbox generate" x="762" y="444" width="228" height="38" rx="6"/>
+        <text class="fn2" x="772" y="460">_to_record()</text>
+        <text class="sub" x="772" y="475">+ page · quote · passage</text>
+        <rect class="box fbox generate store" x="762" y="494" width="228" height="38" rx="6"/>
+        <text class="fn2" x="772" y="510">save_questions()</text>
+        <text class="sub" x="772" y="525">→ ChromaDB &quot;questions&quot;</text>
+        <line class="arrow" x1="778" y1="482" x2="778" y2="493" marker-end="url(#ah3)"/>
+        <rect class="box fbox generate store" x="762" y="544" width="228" height="38" rx="6"/>
+        <text class="fn2" x="772" y="560">get_questions()</text>
+        <text class="sub" x="772" y="575">rebuild option lists</text>
+        <line class="arrow" x1="778" y1="532" x2="778" y2="543" marker-end="url(#ah3)"/>
+        <rect class="box fbox generate" x="762" y="594" width="228" height="38" rx="6"/>
+        <text class="fn2" x="772" y="610">questions.html</text>
+        <text class="sub" x="772" y="625">interactive quiz</text>
+        <line class="arrow" x1="778" y1="582" x2="778" y2="593" marker-end="url(#ah3)"/>
+        <line class="arrow" x1="228" y1="463" x2="253" y2="463" marker-end="url(#ah3)"/>
+        <line class="arrow" x1="482" y1="463" x2="507" y2="463" marker-end="url(#ah3)"/>
+        <line class="arrow" x1="736" y1="463" x2="761" y2="463" marker-end="url(#ah3)"/>
+        <path class="loop" d="M658,682 L658,698 L404,698 L404,633" marker-end="url(#ahg3)"/>
+        <text class="loop-label" x="10" y="702">check failed → generate_one() drafts again</text>
+      </svg>
+    </div>
+  </section>
+
+  <div style="height:24px"></div>
+
+  <!-- ================= OVERVIEW ================= -->
+  <section class="overview" id="overview" aria-labelledby="ov-title">
+    <div class="overview-head">
+      <h2 id="ov-title">Overview</h2>
+      <div class="legend">
+        <span><span class="dot ingest"></span>Document processing</span>
+        <span><span class="dot search"></span>Semantic search</span>
+        <span><span class="dot generate"></span>Question generation</span>
+      </div>
+    </div>
+
+    <div class="diagram-scroll">
+      <svg viewBox="0 0 990 380" role="img" aria-label="Workflow: PDF to ChromaDB, query to search results, passages to verified questions">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path class="head" d="M0,0 L10,5 L0,10 z"/>
+          </marker>
+          <marker id="ahg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path class="head gen" d="M0,0 L10,5 L0,10 z"/>
+          </marker>
+        </defs>
+
+        <!-- Lane 1: document processing (boxes 172 wide, step 197) -->
+        <text class="lane ingest" x="0" y="14">1 · DOCUMENT PROCESSING</text>
+        <rect class="box ingest" x="0"   y="24" width="172" height="58" rx="8"/>
+        <text class="t" x="12" y="48">Read PDF pages</text><text class="f" x="12" y="68">load_pdf()</text>
+        <rect class="box ingest" x="197" y="24" width="172" height="58" rx="8"/>
+        <text class="t" x="209" y="48">Clean text</text><text class="f" x="209" y="68">clean_text()</text>
+        <rect class="box ingest" x="394" y="24" width="172" height="58" rx="8"/>
+        <text class="t" x="406" y="48">Split into chunks</text><text class="f" x="406" y="68">split_into_chunks()</text>
+        <rect class="box ingest" x="591" y="24" width="172" height="58" rx="8"/>
+        <text class="t" x="603" y="48">Embed chunks</text><text class="f" x="603" y="68">embed_documents()</text>
+        <text class="tag" x="603" y="96">Ollama · nomic-embed-text</text>
+        <rect class="box ingest store" x="788" y="24" width="172" height="58" rx="8"/>
+        <text class="t" x="800" y="48">ChromaDB "documents"</text><text class="f" x="800" y="68">save_chunks()</text>
+        <line class="arrow" x1="172" y1="53" x2="195" y2="53" marker-end="url(#ah)"/>
+        <line class="arrow" x1="369" y1="53" x2="392" y2="53" marker-end="url(#ah)"/>
+        <line class="arrow" x1="566" y1="53" x2="589" y2="53" marker-end="url(#ah)"/>
+        <line class="arrow" x1="763" y1="53" x2="786" y2="53" marker-end="url(#ah)"/>
+
+        <!-- Lane 2: semantic search -->
+        <text class="lane search" x="0" y="134">2 · SEMANTIC SEARCH</text>
+        <rect class="box search" x="0"   y="144" width="172" height="58" rx="8"/>
+        <text class="t" x="12" y="168">User asks a question</text><text class="f" x="12" y="188">search_page()</text>
+        <rect class="box search" x="197" y="144" width="172" height="58" rx="8"/>
+        <text class="t" x="209" y="168">Embed the query</text><text class="f" x="209" y="188">embed_query()</text>
+        <text class="tag" x="209" y="216">Ollama · nomic-embed-text</text>
+        <rect class="box search store" x="394" y="144" width="172" height="58" rx="8"/>
+        <text class="t" x="406" y="168">Find nearest chunks</text><text class="f" x="406" y="188">similarity_search()</text>
+        <rect class="box search" x="591" y="144" width="172" height="58" rx="8"/>
+        <text class="t" x="603" y="168">Drop scores &lt; 0.60</text><text class="f" x="603" y="188">search()</text>
+        <rect class="box search" x="788" y="144" width="172" height="58" rx="8"/>
+        <text class="t" x="800" y="168">Show passage + page</text><text class="f" x="800" y="188">search.html</text>
+        <line class="arrow" x1="172" y1="173" x2="195" y2="173" marker-end="url(#ah)"/>
+        <line class="arrow" x1="369" y1="173" x2="392" y2="173" marker-end="url(#ah)"/>
+        <line class="arrow" x1="566" y1="173" x2="589" y2="173" marker-end="url(#ah)"/>
+        <line class="arrow" x1="763" y1="173" x2="786" y2="173" marker-end="url(#ah)"/>
+        <!-- documents store feeds search -->
+        <path class="arrow" d="M874,82 L874,112 L480,112 L480,142" marker-end="url(#ah)"/>
+
+        <!-- Lane 3: question generation (boxes 143 wide, step 163) -->
+        <text class="lane generate" x="0" y="262">3 · QUESTION GENERATION</text>
+        <text class="tag" x="306" y="266" text-anchor="end">Ollama · gemma3:4b</text>
+        <text class="tag" x="632" y="266" text-anchor="end">Ollama · gemma3:4b</text>
+        <rect class="box generate" x="0"   y="272" width="143" height="58" rx="8"/>
+        <text class="t" x="10" y="296">Pick passages</text><text class="f" x="10" y="316">candidate_passages()</text>
+        <rect class="box generate" x="163" y="272" width="143" height="58" rx="8"/>
+        <text class="t" x="173" y="296">LLM drafts MCQ</text><text class="f" x="173" y="316">_draft_question()</text>
+        <rect class="box generate" x="326" y="272" width="143" height="58" rx="8"/>
+        <text class="t" x="336" y="296">Quote check</text><text class="f" x="336" y="316">_find_problem()</text>
+        <rect class="box generate" x="489" y="272" width="143" height="58" rx="8"/>
+        <text class="t" x="499" y="296">LLM blind answer</text><text class="f" x="499" y="316">_blind_answer_matches</text>
+        <rect class="box generate store" x="652" y="272" width="143" height="58" rx="8"/>
+        <text class="t" x="662" y="296">Store questions</text><text class="f" x="662" y="316">save_questions()</text>
+        <rect class="box generate" x="815" y="272" width="143" height="58" rx="8"/>
+        <text class="t" x="825" y="296">Quiz page</text><text class="f" x="825" y="316">questions.html</text>
+        <line class="arrow" x1="143" y1="301" x2="161" y2="301" marker-end="url(#ah)"/>
+        <line class="arrow" x1="306" y1="301" x2="324" y2="301" marker-end="url(#ah)"/>
+        <line class="arrow" x1="469" y1="301" x2="487" y2="301" marker-end="url(#ah)"/>
+        <line class="arrow" x1="632" y1="301" x2="650" y2="301" marker-end="url(#ah)"/>
+        <line class="arrow" x1="795" y1="301" x2="813" y2="301" marker-end="url(#ah)"/>
+        <!-- documents store feeds question generation (routed right of lane 2) -->
+        <path class="arrow" d="M960,53 L978,53 L978,236 L72,236 L72,270" marker-end="url(#ah)"/>
+        <text class="tag" x="420" y="230">get_chunks(): passages come from ChromaDB "documents"</text>
+        <!-- retry loop -->
+        <path class="loop" d="M560,330 L560,350 L234,350 L234,332" marker-end="url(#ahg)"/>
+        <line class="loop" x1="397" y1="330" x2="397" y2="350"/>
+        <text class="loop-label" x="250" y="370">rejected → draft again (up to 3 tries per passage, then the next passage)</text>
+      </svg>
+    </div>
+
+    <div class="shared">
+      <div><b><code>config.py</code> · <code>settings</code></b><p>Every setting (models, chunk size, top-k, 0.60 threshold) is read from <code>.env</code>.</p></div>
+      <div><b><code>llm.py</code> · <code>get_llm()</code>, <code>get_embeddings()</code></b><p>The only place that knows the provider is Ollama.</p></div>
+      <div><b><code>vector_store.py</code></b><p>All ChromaDB code. Two collections, <code>documents</code> and <code>questions</code>, saved in <code>chroma_db/</code>.</p></div>
+      <div><b><code>main.py</code> · <code>cli.py</code></b><p>The web pages and the command line call the same functions.</p></div>
+    </div>
+  </section>
+
+  <!-- ================= 1. DOCUMENT PROCESSING ================= -->
+  <section class="pipeline ingest" id="ingest">
+    <div class="pipe-head">
+      <div class="pipe-num">1</div>
+      <div>
+        <h2>Document processing</h2>
+        <p class="lead">Turns a PDF into small, searchable pieces with page numbers and saves them in ChromaDB.</p>
+      </div>
+    </div>
+    <p class="where">Runs when the app starts with an empty database, when you click <b>Ingest samples</b>, when you upload a PDF, or with <code>python -m app.cli ingest</code>.</p>
+
+    <ol class="steps">
+      <li class="step"><div class="rail"><span class="step-num">1</span></div>
+        <div class="step-body">
+          <h3>Start ingestion</h3>
+          <p>A web route or the CLI passes the PDF path to the ingestion pipeline. <code>ingest_samples()</code> loops over every PDF in <code>samples/</code>.</p>
+          <div class="fns">
+            <span class="fn"><span class="file">main.py › </span>lifespan()</span>
+            <span class="fn"><span class="file">main.py › </span>upload_pdf()</span>
+            <span class="fn"><span class="file">main.py › </span>ingest_sample_pdfs()</span>
+            <span class="fn"><span class="file">ingestion.py › </span>ingest_samples()</span>
+            <span class="fn"><span class="file">ingestion.py › </span>ingest_pdf(pdf_path)</span>
+          </div>
+          <dl class="io"><dt>In</dt><dd>PDF file path</dd><dt>Out</dt><dd>calls <code>process_pdf()</code>, then <code>save_chunks()</code></dd></dl>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">2</span></div>
+        <div class="step-body">
+          <h3>Read each page</h3>
+          <p><code>pypdf.PdfReader</code> extracts the text of every page. Each page becomes one LangChain <code>Document</code> that remembers its file name and page number.</p>
+          <div class="fns">
+            <span class="fn"><span class="file">document_processor.py › </span>process_pdf()</span>
+            <span class="fn"><span class="file">document_processor.py › </span>load_pdf()</span>
+          </div>
+          <dl class="io"><dt>In</dt><dd><code>samples/computer_basics.pdf</code></dd><dt>Out</dt><dd>1 Document per page · metadata <code>{source, page}</code></dd></dl>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">3</span></div>
+        <div class="step-body">
+          <h3>Clean the text</h3>
+          <p>Fixes text extraction problems. Bullet glyphs extracted as DEL become “•”, extra spaces are removed, and lines the PDF wrapped mid-sentence are joined back together.</p>
+          <div class="fns"><span class="fn"><span class="file">document_processor.py › </span>clean_text()</span></div>
+          <dl class="io"><dt>Rule</dt><dd>a line starting in lower case or “(” is joined to the line before it</dd></dl>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">4</span></div>
+        <div class="step-body">
+          <h3>Split into chunks</h3>
+          <p>LangChain’s <code>RecursiveCharacterTextSplitter</code> cuts the text into pieces of about 500 characters, preferring paragraph, line and sentence breaks. Neighbouring chunks overlap by 80 characters, so a fact on a boundary is not lost. Every chunk keeps its page number and gets a <code>chunk_index</code>.</p>
+          <div class="fns"><span class="fn"><span class="file">document_processor.py › </span>split_into_chunks()</span></div>
+          <dl class="io"><dt>Out</dt><dd>sample PDF: 1 page → 5 chunks · metadata <code>{source, page, chunk_index}</code></dd></dl>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">5</span></div>
+        <div class="step-body">
+          <h3>Embed and store in ChromaDB</h3>
+          <p>Old chunks of the same file are deleted first, so re-ingesting never creates duplicates. Each chunk is turned into a vector by <code>nomic-embed-text</code> with the prefix <code>search_document: </code>, then saved with its text and metadata.</p>
+          <div class="fns">
+            <span class="fn"><span class="file">vector_store.py › </span>save_chunks()</span>
+            <span class="fn"><span class="file">vector_store.py › </span>delete_by_source()</span>
+            <span class="fn"><span class="file">vector_store.py › </span>documents_store()</span>
+            <span class="fn"><span class="file">llm.py › </span>PrefixedEmbeddings.embed_documents()</span>
+          </div>
+          <dl class="io"><dt>Out</dt><dd>collection <code>documents</code> · ids like <code>computer_basics.pdf::chunk-3</code> · cosine distance</dd></dl>
+        </div></li>
+    </ol>
+  </section>
+
+  <!-- ================= 2. SEMANTIC SEARCH ================= -->
+  <section class="pipeline search" id="search">
+    <div class="pipe-head">
+      <div class="pipe-num">2</div>
+      <div>
+        <h2>Semantic search</h2>
+        <p class="lead">Finds passages by meaning, not exact words, and shows each one with its page number.</p>
+      </div>
+    </div>
+    <p class="where">Runs on the <b>Semantic Search</b> page (<code>/search?q=…</code>), the API (<code>/api/search</code>) or <code>python -m app.cli search</code>.</p>
+
+    <ol class="steps">
+      <li class="step"><div class="rail"><span class="step-num">1</span></div>
+        <div class="step-body">
+          <h3>Receive the query</h3>
+          <p>The route reads the query text (and an optional document filter) and calls the search function.</p>
+          <div class="fns">
+            <span class="fn"><span class="file">main.py › </span>search_page(q, source)</span>
+            <span class="fn"><span class="file">main.py › </span>api_search()</span>
+            <span class="fn"><span class="file">cli.py › </span>cmd_search()</span>
+          </div>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">2</span></div>
+        <div class="step-body">
+          <h3>Run the search</h3>
+          <p>Trims the query and fills in defaults from settings: up to 4 results and a minimum relevance of 0.60.</p>
+          <div class="fns"><span class="fn"><span class="file">semantic_search.py › </span>search(query, top_k, source, min_score)</span></div>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">3</span></div>
+        <div class="step-body">
+          <h3>Embed the query</h3>
+          <p>The query gets the prefix <code>search_query: </code> and goes through the same embedding model as the chunks, so both are vectors in the same space.</p>
+          <div class="fns"><span class="fn"><span class="file">llm.py › </span>PrefixedEmbeddings.embed_query()</span></div>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">4</span></div>
+        <div class="step-body">
+          <h3>Find the nearest chunks</h3>
+          <p>ChromaDB compares the query vector with every chunk vector and returns the closest ones. The score is <code>1 − cosine distance</code>: 1.0 means the same meaning, lower means less related.</p>
+          <div class="fns">
+            <span class="fn"><span class="file">vector_store.py › </span>similarity_search()</span>
+            <span class="fn"><span class="file">langchain_chroma › </span>similarity_search_with_relevance_scores()</span>
+          </div>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">5</span></div>
+        <div class="step-body">
+          <h3>Drop weak matches</h3>
+          <p>Chunks scoring below 0.60 are removed. If nothing is left, the query is not about this document, and the page says so instead of showing unrelated text.</p>
+          <div class="fns"><span class="fn"><span class="file">vector_store.py › </span>similarity_search(…, min_score)</span></div>
+          <p class="note">Measured on the sample PDF: real questions score 0.64–0.76, unrelated questions 0.41–0.56.</p>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">6</span></div>
+        <div class="step-body">
+          <h3>Show the results</h3>
+          <p>Each match becomes a <code>SearchResult</code> (text, source, page, chunk index, score). The template shows the passage, a page badge and a score bar.</p>
+          <div class="fns">
+            <span class="fn"><span class="file">semantic_search.py › </span>SearchResult</span>
+            <span class="fn"><span class="file">templates › </span>search.html</span>
+          </div>
+        </div></li>
+    </ol>
+
+    <div class="example">
+      <p class="eyebrow">Worked example · computer_basics.pdf</p>
+<pre>"Difference between RAM and ROM"
+  #1  page 1 · chunk 1 · 0.75  "• Memory: RAM is temporary (volatile) memory … ROM is permanent …"
+  #2  page 1 · chunk 3 · 0.61
+  #3  page 1 · chunk 2 · 0.61
+
+"capital of India"
+  no chunk ≥ 0.60  →  "Not found in the document."</pre>
+    </div>
+  </section>
+
+  <!-- ================= 3. QUESTION GENERATION ================= -->
+  <section class="pipeline generate" id="generate">
+    <div class="pipe-head">
+      <div class="pipe-num">3</div>
+      <div>
+        <h2>Question generation</h2>
+        <p class="lead">The LLM writes 5 multiple-choice questions, each from one stored passage. Each question is checked twice before it is saved.</p>
+      </div>
+    </div>
+    <p class="where">Runs when you click <b>Generate questions</b> (<code>POST /questions/generate</code>) or with <code>python -m app.cli generate</code>. Takes about 1–3 minutes with <code>gemma3:4b</code>.</p>
+
+    <ol class="steps">
+      <li class="step"><div class="rail"><span class="step-num">1</span></div>
+        <div class="step-body">
+          <h3>Load the document’s passages</h3>
+          <p>Reads every stored chunk of the chosen PDF from ChromaDB, in original order. The questions are built only from these passages.</p>
+          <div class="fns">
+            <span class="fn"><span class="file">main.py › </span>generate(source)</span>
+            <span class="fn"><span class="file">question_generator.py › </span>generate_questions(source, count=5)</span>
+            <span class="fn"><span class="file">vector_store.py › </span>get_chunks(source)</span>
+          </div>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">2</span></div>
+        <div class="step-body">
+          <h3>Pick passages across the document</h3>
+          <p>Chooses 5 passages spread evenly from start to end, so the questions cover the whole document. Every chunk is added twice more as a backup list.</p>
+          <div class="fns"><span class="fn"><span class="file">question_generator.py › </span>candidate_passages(chunks, count)</span></div>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">3</span></div>
+        <div class="step-body">
+          <h3>LLM drafts a question</h3>
+          <p>The passage goes into <code>QUESTION_PROMPT</code>. The model must answer in JSON matching <code>QuestionDraft</code>. It first copies the sentence it uses, then writes the question, the right answer, 3 wrong answers and an explanation.</p>
+          <div class="fns">
+            <span class="fn"><span class="file">question_generator.py › </span>generate_one(chunk, existing)</span>
+            <span class="fn"><span class="file">question_generator.py › </span>_draft_question()</span>
+            <span class="fn"><span class="file">prompts.py › </span>QUESTION_PROMPT</span>
+            <span class="fn"><span class="file">llm.py › </span>get_llm().with_structured_output()</span>
+          </div>
+          <dl class="io"><dt>Out</dt><dd><code>{source_quote, question, correct_answer, wrong_answers[3], explanation}</code></dd></dl>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">4</span></div>
+        <div class="step-body">
+          <h3>Tidy the draft</h3>
+          <p>Removes labels such as “A)” or “b.” that the model sometimes adds (the quiz page adds its own A–D) and trims spaces.</p>
+          <div class="fns"><span class="fn"><span class="file">question_generator.py › </span>_clean()</span></div>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">5</span></div>
+        <div class="step-body">
+          <h3>Check 1 · rules and grounding (code)</h3>
+          <p>Rejects the draft unless it has exactly 3 distinct wrong answers, doesn’t repeat an earlier question, and quotes a sentence that really is in the passage (at least 80% of the quote’s words must appear there).</p>
+          <div class="fns">
+            <span class="fn"><span class="file">question_generator.py › </span>_find_problem()</span>
+            <span class="fn"><span class="file">question_generator.py › </span>_quote_overlap()</span>
+          </div>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">6</span></div>
+        <div class="step-body">
+          <h3>Shuffle the options</h3>
+          <p>The code puts the correct answer and the 3 wrong ones in random order. The correct answer is therefore always one of the options and isn’t always in the same position.</p>
+          <div class="fns"><span class="fn"><span class="file">question_generator.py › </span>_shuffled_options()</span></div>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">7</span></div>
+        <div class="step-body">
+          <h3>Check 2 · blind answer (LLM)</h3>
+          <p>The LLM sees the passage, the question and the options, but not the intended answer. It reasons, then picks a letter. The question is kept only if its pick matches the answer from the draft. This catches wrong answer keys and questions with more than one correct option.</p>
+          <div class="fns">
+            <span class="fn"><span class="file">question_generator.py › </span>_blind_answer_matches()</span>
+            <span class="fn"><span class="file">prompts.py › </span>VERIFY_PROMPT</span>
+            <span class="fn"><span class="file">question_generator.py › </span>BlindAnswer</span>
+          </div>
+          <p class="note">If check 1 or check 2 fails, <code>generate_one()</code> drafts again for that passage, up to 3 times, then moves on to the next passage in the backup list.</p>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">8</span></div>
+        <div class="step-body">
+          <h3>Store in ChromaDB</h3>
+          <p>Adds the page number, the quote and the full source passage. The document’s old questions are replaced. ChromaDB metadata can’t hold lists, so the options are saved as <code>option_1</code> to <code>option_4</code>.</p>
+          <div class="fns">
+            <span class="fn"><span class="file">question_generator.py › </span>_to_record()</span>
+            <span class="fn"><span class="file">vector_store.py › </span>save_questions()</span>
+            <span class="fn"><span class="file">vector_store.py › </span>_flatten_question()</span>
+          </div>
+          <dl class="io"><dt>Out</dt><dd>collection <code>questions</code> · ids like <code>computer_basics.pdf::q-0</code></dd></dl>
+        </div></li>
+
+      <li class="step"><div class="rail"><span class="step-num">9</span></div>
+        <div class="step-body">
+          <h3>Show the quiz</h3>
+          <p>The Questions page reads the stored questions back and rebuilds the option lists. Clicking an option marks it right or wrong and shows the explanation, the quoted sentence and the source passage.</p>
+          <div class="fns">
+            <span class="fn"><span class="file">main.py › </span>questions_page()</span>
+            <span class="fn"><span class="file">vector_store.py › </span>get_questions()</span>
+            <span class="fn"><span class="file">vector_store.py › </span>_unflatten_question()</span>
+            <span class="fn"><span class="file">templates › </span>questions.html</span>
+          </div>
+        </div></li>
+    </ol>
+
+    <div class="example">
+      <p class="eyebrow">Worked example · one stored question</p>
+<pre>Passage   chunk 1, page 1
+Quote     "Memory: RAM is temporary (volatile) memory that loses data when power is off. …"
+Question  What characteristic best describes RAM memory?
+          A) start-up instructions
+          B) permanent (non-volatile)
+          C) solid state drive
+          D) temporary (volatile)        ← correct (draft) = blind answer ✓
+Check 1   3 distinct wrong answers ✓   quote found in passage ✓</pre>
+    </div>
+  </section>
+
+
+
+  <!-- ================= DATABASE ER DIAGRAM ================= -->
+  <section class="overview er" id="database" aria-labelledby="er-title">
+    <div class="overview-head">
+      <h2 id="er-title">Database ER diagram</h2>
+      <div class="legend">
+        <span><b class="k pk">PK</b> primary key (id)</span>
+        <span><b class="k fk">FK</b> links to the PDF</span>
+        <span>┤├ one &nbsp;·&nbsp; ⋲ many</span>
+      </div>
+    </div>
+    <p class="lead" style="margin-bottom:16px">ChromaDB is a vector database, not a relational one. It has no tables or joins.
+      Each <b>collection</b> holds records made of an <code>id</code>, a text <code>document</code>, an <code>embedding</code> and flat <code>metadata</code> fields.
+      The app links records by the PDF file name in <code>source</code>.</p>
+    <div class="diagram-scroll">
+      <svg viewBox="0 0 990 396" role="img" aria-label="ER diagram: a PDF file has many chunks in the documents collection and many questions in the questions collection; questions copy chunk text">
+        <defs><marker id="er-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="er-head" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+        <rect class="ent pdf logical" x="0" y="150" width="200" height="82" rx="8"/>
+        <path class="ent-head pdf" d="M0,184 L0,158 Q0,150 8,150 L192,150 Q200,150 200,158 L200,184 Z"/>
+        <text class="ent-title" x="12" y="172">PDF file</text>
+        <text class="ent-sub" x="188" y="172" text-anchor="end">logical</text>
+        <text class="key pk" x="10" y="200.0">PK</text>
+        <text class="fname bold" x="38" y="200.0">source</text>
+        <text class="ftype" x="188" y="200.0" text-anchor="end">str</text>
+        <line class="row-line" x1="0" y1="208" x2="200" y2="208"/>
+        <text class="fname" x="38" y="224.0">folder</text>
+        <text class="ftype" x="188" y="224.0" text-anchor="end">str</text>
+        <rect class="ent docs" x="270" y="40" width="290" height="178" rx="8"/>
+        <path class="ent-head docs" d="M270,74 L270,48 Q270,40 278,40 L552,40 Q560,40 560,48 L560,74 Z"/>
+        <text class="ent-title" x="282" y="62">&quot;documents&quot;</text>
+        <text class="ent-sub" x="548" y="62" text-anchor="end">collection · cosine</text>
+        <text class="key pk" x="280" y="90.0">PK</text>
+        <text class="fname bold" x="308" y="90.0">id</text>
+        <text class="ftype" x="548" y="90.0" text-anchor="end">str</text>
+        <line class="row-line" x1="270" y1="98" x2="560" y2="98"/>
+        <text class="fname" x="308" y="114.0">document</text>
+        <text class="ftype" x="548" y="114.0" text-anchor="end">str · chunk text</text>
+        <line class="row-line" x1="270" y1="122" x2="560" y2="122"/>
+        <text class="fname" x="308" y="138.0">embedding</text>
+        <text class="ftype" x="548" y="138.0" text-anchor="end">float[768]</text>
+        <line class="row-line" x1="270" y1="146" x2="560" y2="146"/>
+        <text class="key fk" x="280" y="162.0">FK</text>
+        <text class="fname" x="308" y="162.0">source</text>
+        <text class="ftype" x="548" y="162.0" text-anchor="end">str</text>
+        <line class="row-line" x1="270" y1="170" x2="560" y2="170"/>
+        <text class="fname" x="308" y="186.0">page</text>
+        <text class="ftype" x="548" y="186.0" text-anchor="end">int</text>
+        <line class="row-line" x1="270" y1="194" x2="560" y2="194"/>
+        <text class="fname" x="308" y="210.0">chunk_index</text>
+        <text class="ftype" x="548" y="210.0" text-anchor="end">int</text>
+        <rect class="ent qs" x="700" y="40" width="290" height="322" rx="8"/>
+        <path class="ent-head qs" d="M700,74 L700,48 Q700,40 708,40 L982,40 Q990,40 990,48 L990,74 Z"/>
+        <text class="ent-title" x="712" y="62">&quot;questions&quot;</text>
+        <text class="ent-sub" x="978" y="62" text-anchor="end">collection · cosine</text>
+        <text class="key pk" x="710" y="90.0">PK</text>
+        <text class="fname bold" x="738" y="90.0">id</text>
+        <text class="ftype" x="978" y="90.0" text-anchor="end">str</text>
+        <line class="row-line" x1="700" y1="98" x2="990" y2="98"/>
+        <text class="fname" x="738" y="114.0">document</text>
+        <text class="ftype" x="978" y="114.0" text-anchor="end">str · question</text>
+        <line class="row-line" x1="700" y1="122" x2="990" y2="122"/>
+        <text class="fname" x="738" y="138.0">embedding</text>
+        <text class="ftype" x="978" y="138.0" text-anchor="end">float[768]</text>
+        <line class="row-line" x1="700" y1="146" x2="990" y2="146"/>
+        <text class="key fk" x="710" y="162.0">FK</text>
+        <text class="fname" x="738" y="162.0">source</text>
+        <text class="ftype" x="978" y="162.0" text-anchor="end">str</text>
+        <line class="row-line" x1="700" y1="170" x2="990" y2="170"/>
+        <text class="fname" x="738" y="186.0">number</text>
+        <text class="ftype" x="978" y="186.0" text-anchor="end">int · 1–5</text>
+        <line class="row-line" x1="700" y1="194" x2="990" y2="194"/>
+        <text class="fname" x="738" y="210.0">question</text>
+        <text class="ftype" x="978" y="210.0" text-anchor="end">str</text>
+        <line class="row-line" x1="700" y1="218" x2="990" y2="218"/>
+        <text class="fname" x="738" y="234.0">option_1 … option_4</text>
+        <text class="ftype" x="978" y="234.0" text-anchor="end">str × 4</text>
+        <line class="row-line" x1="700" y1="242" x2="990" y2="242"/>
+        <text class="fname" x="738" y="258.0">correct_answer</text>
+        <text class="ftype" x="978" y="258.0" text-anchor="end">str · = one option</text>
+        <line class="row-line" x1="700" y1="266" x2="990" y2="266"/>
+        <text class="fname" x="738" y="282.0">explanation</text>
+        <text class="ftype" x="978" y="282.0" text-anchor="end">str</text>
+        <line class="row-line" x1="700" y1="290" x2="990" y2="290"/>
+        <text class="fname" x="738" y="306.0">source_quote</text>
+        <text class="ftype" x="978" y="306.0" text-anchor="end">str</text>
+        <line class="row-line" x1="700" y1="314" x2="990" y2="314"/>
+        <text class="fname" x="738" y="330.0">page</text>
+        <text class="ftype" x="978" y="330.0" text-anchor="end">int</text>
+        <line class="row-line" x1="700" y1="338" x2="990" y2="338"/>
+        <text class="fname" x="738" y="354.0">source_text</text>
+        <text class="ftype" x="978" y="354.0" text-anchor="end">str · chunk copy</text>
+        <path class="rel" d="M200,196.0 L235,196.0 L235,158.0 L270,158.0"/>
+        <line class="rel" x1="206" y1="189.0" x2="206" y2="203.0"/>
+        <line class="rel" x1="212" y1="189.0" x2="212" y2="203.0"/>
+        <line class="rel" x1="258" y1="158.0" x2="270" y2="151.0"/>
+        <line class="rel" x1="258" y1="158.0" x2="270" y2="165.0"/>
+        <line class="rel" x1="254" y1="151.0" x2="254" y2="165.0"/>
+        <text class="rel-label" x="212" y="224">1 : N</text>
+        <text class="rel-sub" x="212" y="237">has chunks</text>
+        <path class="rel" d="M100,150 L100,18 L650,18 L650,158.0 L700,158.0"/>
+        <line class="rel" x1="93" y1="144" x2="107" y2="144"/>
+        <line class="rel" x1="93" y1="138" x2="107" y2="138"/>
+        <line class="rel" x1="688" y1="158.0" x2="700" y2="151.0"/>
+        <line class="rel" x1="688" y1="158.0" x2="700" y2="165.0"/>
+        <line class="rel" x1="684" y1="151.0" x2="684" y2="165.0"/>
+        <text class="rel-label" x="300" y="12">1 : N  has questions</text>
+        <text class="rel-sub" x="420" y="12">(5 per run · replaced on Regenerate)</text>
+        <path class="rel copy" d="M415,218 L415,386 L845,386 L845,364" marker-end="url(#er-arrow)"/>
+        <text class="rel-sub" x="430" y="380">chunk text + page copied into source_text and page (no FK)</text>
+      </svg>
+    </div>
+
+    <div class="er-facts">
+      <div><b>On disk</b><p><code>chroma_db/chroma.sqlite3</code> holds ids, text and metadata. Each collection also has its own folder with an HNSW vector index (cosine distance).</p></div>
+      <div><b>Right now</b><p><code>documents</code>: 15 chunks (computer_basics.pdf 5, Core_Java_Matrix_Practice_Sheet.pdf 10). <code>questions</code>: 10 (5 per PDF).</p></div>
+      <div><b>Written by</b><p><code>save_chunks()</code> and <code>save_questions()</code> in <code>vector_store.py</code>. Both delete a PDF’s old records first via <code>delete_by_source()</code>.</p></div>
+    </div>
+
+    <h3 class="er-h">Collection <code>documents</code></h3>
+    <div class="table-scroll"><table class="er-table"><thead><tr><th>Field</th><th>Type</th><th>Example</th><th>Purpose</th></tr></thead><tbody><tr><td><code>id</code></td><td>str (PK)</td><td>computer_basics.pdf::chunk-3</td><td>&lt;source&gt;::chunk-&lt;chunk_index&gt;; re-ingesting a PDF replaces the same ids</td></tr>
+<tr><td><code>document</code></td><td>str</td><td>4. Units of Memory
+The smallest unit is a bit…</td><td>Chunk text (≈500 chars) shown in search results</td></tr>
+<tr><td><code>embedding</code></td><td>float[768]</td><td>[0.012, -0.044, …]</td><td>nomic-embed-text vector of &#x27;search_document: &#x27; + text</td></tr>
+<tr><td><code>source</code></td><td>str (FK)</td><td>computer_basics.pdf</td><td>PDF file name; used to filter and to delete old chunks</td></tr>
+<tr><td><code>page</code></td><td>int</td><td>1</td><td>1-based page number shown as the page badge</td></tr>
+<tr><td><code>chunk_index</code></td><td>int</td><td>3</td><td>Order of the chunk in the PDF</td></tr></tbody></table></div>
+    <h3 class="er-h">Collection <code>questions</code></h3>
+    <div class="table-scroll"><table class="er-table"><thead><tr><th>Field</th><th>Type</th><th>Example</th><th>Purpose</th></tr></thead><tbody><tr><td><code>id</code></td><td>str (PK)</td><td>computer_basics.pdf::q-0</td><td>&lt;source&gt;::q-&lt;n&gt;; all ids of a PDF are replaced on Regenerate</td></tr>
+<tr><td><code>document</code></td><td>str</td><td>What characteristic best describes RAM memory?</td><td>Question text (embedded so questions could be searched)</td></tr>
+<tr><td><code>embedding</code></td><td>float[768]</td><td>[…]</td><td>Vector of the question text</td></tr>
+<tr><td><code>source</code></td><td>str (FK)</td><td>computer_basics.pdf</td><td>Which PDF the question belongs to</td></tr>
+<tr><td><code>number</code></td><td>int</td><td>2</td><td>Display order 1–5</td></tr>
+<tr><td><code>question</code></td><td>str</td><td>What characteristic best describes RAM memory?</td><td>Question text again, as metadata</td></tr>
+<tr><td><code>option_1 … option_4</code></td><td>str</td><td>start-up instructions · … · temporary (volatile)</td><td>The four options; Chroma metadata can&#x27;t hold lists, so they are flattened</td></tr>
+<tr><td><code>correct_answer</code></td><td>str</td><td>temporary (volatile)</td><td>Always equal to one of the options</td></tr>
+<tr><td><code>explanation</code></td><td>str</td><td>The text explicitly states that RAM is …</td><td>Why the answer is correct</td></tr>
+<tr><td><code>source_quote</code></td><td>str</td><td>Memory: RAM is temporary (volatile) memory …</td><td>The sentence the question is based on</td></tr>
+<tr><td><code>page</code></td><td>int</td><td>1</td><td>Page of the source passage</td></tr>
+<tr><td><code>source_text</code></td><td>str</td><td>• Memory: RAM is temporary …</td><td>Full copy of the chunk the question came from</td></tr></tbody></table></div>
+  </section>
+
+  <div style="height:24px"></div>
+
+  <!-- ================= FUNCTION INDEX ================= -->
+  <section class="files" id="files">
+    <h2>Function index</h2>
+    <p class="lead" style="margin-top:6px">Every file in <code>app/</code> and the functions that do the work.</p>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>File</th><th>Job</th><th>Main functions</th></tr></thead>
+        <tbody>
+          <tr><td>config.py</td><td>Settings from <code>.env</code></td><td><span class="fn">Settings</span><span class="fn">settings</span></td></tr>
+          <tr><td>llm.py</td><td>Ollama models</td><td><span class="fn">get_llm()</span><span class="fn">get_embeddings()</span><span class="fn">PrefixedEmbeddings</span></td></tr>
+          <tr><td>document_processor.py</td><td>PDF → clean chunks</td><td><span class="fn">process_pdf()</span><span class="fn">load_pdf()</span><span class="fn">clean_text()</span><span class="fn">split_into_chunks()</span></td></tr>
+          <tr><td>ingestion.py</td><td>PDF → ChromaDB</td><td><span class="fn">ingest_pdf()</span><span class="fn">ingest_samples()</span></td></tr>
+          <tr><td>vector_store.py</td><td>All ChromaDB access</td><td><span class="fn">save_chunks()</span><span class="fn">get_chunks()</span><span class="fn">list_sources()</span><span class="fn">similarity_search()</span><span class="fn">save_questions()</span><span class="fn">get_questions()</span><span class="fn">delete_by_source()</span></td></tr>
+          <tr><td>semantic_search.py</td><td>Query → passages</td><td><span class="fn">search()</span><span class="fn">SearchResult</span><span class="fn">SAMPLE_QUERIES</span></td></tr>
+          <tr><td>prompts.py</td><td>LLM instructions</td><td><span class="fn">QUESTION_PROMPT</span><span class="fn">VERIFY_PROMPT</span></td></tr>
+          <tr><td>question_generator.py</td><td>Passages → verified MCQs</td><td><span class="fn">generate_questions()</span><span class="fn">candidate_passages()</span><span class="fn">generate_one()</span><span class="fn">_draft_question()</span><span class="fn">_find_problem()</span><span class="fn">_blind_answer_matches()</span></td></tr>
+          <tr><td>main.py</td><td>Web pages + JSON API</td><td><span class="fn">home()</span><span class="fn">search_page()</span><span class="fn">questions_page()</span><span class="fn">upload_pdf()</span><span class="fn">generate()</span><span class="fn">api_search()</span><span class="fn">api_questions()</span></td></tr>
+          <tr><td>cli.py</td><td>Command line</td><td><span class="fn">cmd_ingest()</span><span class="fn">cmd_search()</span><span class="fn">cmd_generate()</span><span class="fn">cmd_export()</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+</body>
+</html>

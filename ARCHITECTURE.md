@@ -24,6 +24,9 @@ semantic search (retrieval) and as the only knowledge source for question genera
                                    nomic-embed-text (embeddings), gemma3:4b (LLM)
 ```
 
+Detailed diagrams, including the RAG function map and the database ER diagram, are in
+[docs/workflow.html](docs/workflow.html). Open the file in a browser.
+
 ## Modules (`app/`)
 
 | File | Responsibility |

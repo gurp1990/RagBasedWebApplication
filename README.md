@@ -14,7 +14,15 @@ A fully local **Retrieval-Augmented Generation** web application written in Pyth
 
 Stack: **Python · LangChain · ChromaDB · Ollama (`gemma3:4b` LLM, `nomic-embed-text` embeddings) · FastAPI**
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the architecture overview.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the architecture overview, and
+[docs/workflow.html](docs/workflow.html) for the diagrams. Download that file and open it in a
+browser, since GitHub shows HTML files as source code. It contains:
+
+* **RAG at a glance:** where Retrieve, Augment and Generate happen in the app
+* **RAG function map:** every function on the RAG path, in call order
+* **Step-by-step workflows:** document processing, semantic search and question generation
+* **Database ER diagram:** the ChromaDB collections `documents` and `questions` and their fields
+* **Function index:** every file in `app/` and its main functions
 
 ---
 
