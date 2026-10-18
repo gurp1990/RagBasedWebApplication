@@ -54,6 +54,7 @@
   <dl class="config">
     <dt>LLM</dt><dd>{{ settings.llm_provider }} · <code>{{ settings.ollama_llm_model }}</code></dd>
     <dt>Embeddings</dt><dd><code>{{ settings.ollama_embedding_model }}</code></dd>
+    <dt>Min relevance</dt><dd>{{ (settings.min_relevance_score * 100) | round | int }}% (lower scores = not in document)</dd>
     <dt>Chunking</dt><dd>{{ settings.chunk_size }} chars, {{ settings.chunk_overlap }} overlap</dd>
     <dt>Vector DB</dt><dd>ChromaDB at <code>{{ settings.chroma_dir.name }}/</code></dd>
   </dl>

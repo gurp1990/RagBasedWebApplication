@@ -39,7 +39,10 @@ def cmd_ingest(args) -> None:
 def cmd_search(args) -> None:
     for query in [args.query] if args.query else SAMPLE_QUERIES:
         print(f'\nQuery: "{query}"')
-        for i, r in enumerate(search(query, top_k=args.top_k), start=1):
+        results = search(query, top_k=args.top_k)
+        if not results:
+            print(f"  Not found in the document (no passage >= {settings.min_relevance_score:.2f}).")
+        for i, r in enumerate(results, start=1):
             preview = r.text.replace("\n", " ")[:160]
             print(f"  {i}. [page {r.page} | score {r.score:.2f}] {preview}...")
 
@@ -78,6 +81,7 @@ def cmd_export(args) -> None:
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "model": settings.ollama_llm_model,
         "settings": settings,
+        "min_score": settings.min_relevance_score,
     }
     pages = {
         "index.html": ("index.html", {"documents": documents}),

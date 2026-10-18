@@ -16,6 +16,7 @@ SAMPLE_QUERIES = [
     "Which devices are used for output?",
     "How many bytes are in a kilobyte?",
     "What technology did the second generation of computers use?",
+    "How do I bake a chocolate cake?",  # off-topic: should return no matches
 ]
 
 
@@ -32,11 +33,25 @@ class SearchResult:
         return round(self.score * 100)
 
 
-def search(query: str, top_k: int | None = None, source: str | None = None) -> list[SearchResult]:
+def search(
+    query: str,
+    top_k: int | None = None,
+    source: str | None = None,
+    min_score: float | None = None,
+) -> list[SearchResult]:
+    """
+    Return the passages most similar to `query`. Passages scoring below the
+    minimum relevance are dropped, so an off-topic query returns an empty list.
+    """
     query = query.strip()
     if not query:
         return []
-    matches = vector_store.similarity_search(query, k=top_k or settings.search_top_k, source=source)
+    matches = vector_store.similarity_search(
+        query,
+        k=top_k or settings.search_top_k,
+        min_score=settings.min_relevance_score if min_score is None else min_score,
+        source=source,
+    )
     return [
         SearchResult(
             text=doc.page_content,

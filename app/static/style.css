@@ -123,6 +123,8 @@ form.inline { display: inline-flex; gap: 8px; margin: 0; }
 .bar { width: 80px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
 .bar span { display: block; height: 100%; background: var(--accent); }
 .passage { white-space: pre-line; margin: 0; }
+.no-match { border-left: 4px solid var(--bad); }
+.no-match p { margin: 4px 0 0; }
 
 /* ---------- questions ---------- */
 .question h2 { font-size: 1.05rem; line-height: 1.45; }

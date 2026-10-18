@@ -69,15 +69,22 @@ All settings have defaults and can be overridden in `.env` (see [.env.example](.
 | `OLLAMA_LLM_MODEL` | `gemma3:4b` | Chat model for question generation (e.g. `gemma3:12b`, `llama3.2:3b`) |
 | `OLLAMA_EMBEDDING_MODEL` | `nomic-embed-text` | Embedding model |
 | `LLM_TEMPERATURE` | `0.2` | Lower = more deterministic |
+| `EMBED_QUERY_PREFIX` / `EMBED_DOCUMENT_PREFIX` | `search_query: ` / `search_document: ` | Task prefixes required by `nomic-embed-text`; set both empty for other embedding models |
 | `CHUNK_SIZE` / `CHUNK_OVERLAP` | `500` / `80` | Chunk length and overlap in characters |
 | `CHROMA_DIR` | `chroma_db` | ChromaDB persistence folder |
 | `DOCUMENTS_COLLECTION` / `QUESTIONS_COLLECTION` | `documents` / `questions` | ChromaDB collection names |
-| `SEARCH_TOP_K` | `4` | Number of search results |
+| `SEARCH_TOP_K` | `4` | Maximum number of search results |
+| `MIN_RELEVANCE_SCORE` | `0.6` | Passages scoring below this are dropped; if none remain, the page shows "Not found in the document" |
 | `NUM_QUESTIONS` | `5` | Questions generated per document |
 | `SAMPLES_DIR` / `UPLOAD_DIR` | `samples` / `uploads` | PDF folders |
 
-> If you change `OLLAMA_EMBEDDING_MODEL` or the chunk settings, delete `chroma_db/` and
-> ingest again so all vectors come from the same model.
+> If you change `OLLAMA_EMBEDDING_MODEL`, the embedding prefixes or the chunk settings,
+> delete `chroma_db/` and ingest again so all vectors are created the same way.
+
+**How the relevance threshold was chosen:** with the prefixes, the best score for 10
+questions about the sample PDF was 0.64–0.76, and for 10 unrelated questions ("How do I
+bake a cake?", "capital of India", …) it was 0.41–0.56. The default of 0.6 sits in that gap.
+Raise it for stricter results; lower it if relevant passages are being missed.
 
 ## 4. Running
 
@@ -119,19 +126,20 @@ python -m app.cli export                     # write sample_outputs/*.html and *
 Generated from `samples/computer_basics.pdf` and committed in [`sample_outputs/`](sample_outputs/).
 They are static, self-contained HTML pages that open directly in a browser:
 
-* [`sample_outputs/semantic_search.html`](sample_outputs/semantic_search.html): 5 demo queries with their matching passages and pages ([JSON](sample_outputs/semantic_search.json))
+* [`sample_outputs/semantic_search.html`](sample_outputs/semantic_search.html): 5 demo queries with their matching passages and pages, plus 1 off-topic query that correctly returns "Not found in the document" ([JSON](sample_outputs/semantic_search.json))
 * [`sample_outputs/questions.html`](sample_outputs/questions.html): the 5 generated questions as an interactive quiz ([JSON](sample_outputs/questions.json))
 * [`sample_outputs/index.html`](sample_outputs/index.html): document overview
 
 **Semantic search (top result per query)**
 
-| Query | Page | Score | Top passage starts with… |
-|---|---|---|---|
-| What is the brain of the computer? | 1 | 0.74 | "A computer is an electronic device … CPU: the 'brain' of the computer…" |
-| Difference between RAM and ROM | 1 | 0.66 | "Memory: RAM is temporary (volatile) memory … ROM is permanent…" |
-| Which devices are used for output? | 1 | 0.66 | "… Input Devices / Output Devices / Keyboard, Mouse / Monitor…" |
-| How many bytes are in a kilobyte? | 1 | 0.63 | "Units of Memory: The smallest unit is a bit … 1024 Bytes = 1 Kilobyte…" |
-| What technology did the second generation use? | 1 | 0.67 | "… Second (1956–63): transistors…" |
+| Query | Results | Passage with the answer (page, score) |
+|---|---|---|
+| What is the brain of the computer? | 4 | #1: "CPU (Central Processing Unit): the 'brain' of the computer…" (p. 1, 0.76) |
+| Difference between RAM and ROM | 3 | #1: "Memory: RAM is temporary (volatile) memory … ROM is permanent…" (p. 1, 0.75) |
+| Which devices are used for output? | 3 | #1: "… Input Devices / Output Devices / Keyboard, Mouse / Monitor…" (p. 1, 0.64) |
+| How many bytes are in a kilobyte? | 1 | #1: "Units of Memory … 1024 Bytes = 1 Kilobyte…" (p. 1, 0.76) |
+| What technology did the second generation use? | 4 | #2: "… Second (1956–63): transistors…" (p. 1, 0.67) |
+| How do I bake a chocolate cake? *(off-topic)* | 0 | **Not found in the document** |
 
 **Generated question (example)**
 

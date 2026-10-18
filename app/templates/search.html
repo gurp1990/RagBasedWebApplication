@@ -46,7 +46,11 @@
     </article>
     {% endfor %}
   {% else %}
-    <p class="muted">No matching passages. Have you ingested a document?</p>
+    <div class="card no-match">
+      <strong>Not found in the document.</strong>
+      <p class="muted">No passage reached the minimum relevance of
+        {{ (min_score * 100) | round | int }}%, so this topic is probably not covered by the document.</p>
+    </div>
   {% endif %}
 </section>
 {% endfor %}

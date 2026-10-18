@@ -47,8 +47,12 @@ semantic search (retrieval) and as the only knowledge source for question genera
    split into ~500-character chunks with 80 characters of overlap. Each chunk is stored in
    ChromaDB with its page number, under an id like `computer_basics.pdf::chunk-3`.
 2. **Semantic search** – the query is embedded with the same model (`nomic-embed-text`).
-   ChromaDB returns the nearest chunks by cosine similarity. The UI shows each matching
-   passage, its page number and a relevance score.
+   Queries get the `search_query: ` prefix and chunks the `search_document: ` prefix, as the
+   model expects (see `PrefixedEmbeddings` in `llm.py`). ChromaDB returns the nearest chunks
+   by cosine similarity. Chunks scoring below `MIN_RELEVANCE_SCORE` (default 0.6) are
+   dropped, so an off-topic query returns "Not found in the document" instead of
+   unrelated passages. The UI shows each matching passage, its page number and a
+   relevance score.
 3. **Question generation** – the generator picks passages spread across the document and
    runs these steps for each one:
    * The LLM returns structured JSON (a Pydantic schema via `with_structured_output`):

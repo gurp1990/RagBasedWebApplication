@@ -99,6 +99,7 @@ def search_page(request: Request, q: str = "", source: str = ""):
         request, "search.html",
         query=q, source=source, searches=searches,
         sources=vector_store.list_sources(), sample_queries=SAMPLE_QUERIES,
+        min_score=settings.min_relevance_score,
     )
 
 
@@ -152,8 +153,10 @@ def generate(source: str = Form(...)):
 # ---------- JSON API ----------
 
 @app.get("/api/search")
-def api_search(q: str, top_k: int | None = None, source: str | None = None):
-    return {"query": q, "results": [asdict(r) for r in search(q, top_k=top_k, source=source)]}
+def api_search(q: str, top_k: int | None = None, source: str | None = None,
+               min_score: float | None = None):
+    results = search(q, top_k=top_k, source=source, min_score=min_score)
+    return {"query": q, "found": bool(results), "results": [asdict(r) for r in results]}
 
 
 @app.get("/api/questions")

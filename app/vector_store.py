@@ -65,10 +65,13 @@ def list_sources() -> list[str]:
     return sorted({meta["source"] for meta in metadatas})
 
 
-def similarity_search(query: str, k: int, source: str | None = None) -> list[tuple[Document, float]]:
-    """Return (chunk, relevance score 0..1) pairs, best match first."""
+def similarity_search(
+    query: str, k: int, min_score: float = 0.0, source: str | None = None
+) -> list[tuple[Document, float]]:
+    """Return (chunk, relevance score 0..1) pairs scoring at least `min_score`, best first."""
     where = {"source": source} if source else None
-    return documents_store().similarity_search_with_relevance_scores(query, k=k, filter=where)
+    matches = documents_store().similarity_search_with_relevance_scores(query, k=k, filter=where)
+    return [(doc, score) for doc, score in matches if score >= min_score]
 
 
 # ---------- questions ----------

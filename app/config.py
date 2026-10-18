@@ -27,6 +27,9 @@ class Settings:
     ollama_llm_model: str = _env("OLLAMA_LLM_MODEL", "gemma3:4b")
     ollama_embedding_model: str = _env("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text")
     llm_temperature: float = float(_env("LLM_TEMPERATURE", "0.2"))
+    # Task prefixes expected by nomic-embed-text; set both to "" for other models.
+    embed_query_prefix: str = _env("EMBED_QUERY_PREFIX", "search_query: ")
+    embed_document_prefix: str = _env("EMBED_DOCUMENT_PREFIX", "search_document: ")
 
     # --- Document processing ---
     chunk_size: int = int(_env("CHUNK_SIZE", "500"))
@@ -39,6 +42,8 @@ class Settings:
 
     # --- Retrieval / question generation ---
     search_top_k: int = int(_env("SEARCH_TOP_K", "4"))
+    # Passages scoring below this (0..1) are treated as "not in the document".
+    min_relevance_score: float = float(_env("MIN_RELEVANCE_SCORE", "0.6"))
     num_questions: int = int(_env("NUM_QUESTIONS", "5"))
 
     # --- Files ---
