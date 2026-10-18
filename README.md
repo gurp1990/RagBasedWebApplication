@@ -34,20 +34,103 @@ browser, since GitHub shows HTML files as source code. It contains:
 | [Ollama](https://ollama.com) | Must be running locally (`http://localhost:11434`) |
 | Ollama models | `ollama pull gemma3:4b` and `ollama pull nomic-embed-text` |
 
+**Hardware:** `gemma3:4b` needs about 3.3 GB of disk space and works best with 8 GB of RAM or
+more. A GPU (NVIDIA or AMD) is used automatically if present. Without one, the app still works
+on the CPU, but question generation is slower.
+
+### Install Ollama and the models
+
+The app needs two Ollama models:
+
+| Model | Size | Used for |
+|---|---|---|
+| `gemma3:4b` | ~3.3 GB | LLM that writes and checks the questions |
+| `nomic-embed-text` | ~0.3 GB | Embeddings for chunks and search queries |
+
+#### Windows (10 / 11)
+
+1. **Install Ollama.** Choose one option:
+   * Download and run **OllamaSetup.exe** from <https://ollama.com/download/windows>, or
+   * In PowerShell, run:
+     ```powershell
+     winget install Ollama.Ollama
+     ```
+2. **Open a new PowerShell window** so the `ollama` command is found, then check it:
+   ```powershell
+   ollama --version
+   ```
+   Ollama starts automatically and runs in the background (llama icon in the system tray).
+3. **Download the models:**
+   ```powershell
+   ollama pull gemma3:4b
+   ollama pull nomic-embed-text
+   ```
+4. **Check that everything is ready:**
+   ```powershell
+   ollama list                                  # both models should be listed
+   ollama run gemma3:4b "Say hello in one line" # the model should answer
+   curl.exe http://localhost:11434/api/tags     # the API should return JSON
+   ```
+
+Models are stored in `%USERPROFILE%\.ollama\models`. To use another drive, set the
+`OLLAMA_MODELS` environment variable to a new folder and restart Ollama.
+
+#### Linux (Ubuntu, Debian, Fedora, …)
+
+1. **Install Ollama** with the official script:
+   ```bash
+   curl -fsSL https://ollama.com/install.sh | sh
+   ```
+   This installs the `ollama` command and a **systemd service** that starts Ollama in the background.
+2. **Check that the service is running:**
+   ```bash
+   ollama --version
+   sudo systemctl status ollama          # should show "active (running)"
+   sudo systemctl enable --now ollama    # start it now and on every boot, if needed
+   ```
+   On a system without systemd (for example WSL without systemd, or a container), run
+   `ollama serve` in a separate terminal and leave it open.
+3. **Download the models:**
+   ```bash
+   ollama pull gemma3:4b
+   ollama pull nomic-embed-text
+   ```
+4. **Check that everything is ready:**
+   ```bash
+   ollama list                                  # both models should be listed
+   ollama run gemma3:4b "Say hello in one line" # the model should answer
+   curl http://localhost:11434/api/tags         # the API should return JSON
+   ```
+5. **Python:** make sure Python 3.11+ and venv are installed. On Ubuntu/Debian, run
+   `sudo apt install python3 python3-venv python3-pip`.
+
+#### If something goes wrong
+
+| Problem | Fix |
+|---|---|
+| `ollama` is not recognised (Windows) | Open a new terminal after installing, or sign out and back in |
+| `could not connect to ollama` / `connection refused` | Start Ollama: on Windows open the Ollama app; on Linux run `sudo systemctl start ollama` (or `ollama serve`) |
+| `model "gemma3:4b" not found` | Run `ollama pull gemma3:4b` (check spelling with `ollama list`) |
+| Port 11434 already in use | Another Ollama instance is already running, which is fine. Otherwise stop the other program |
+| Ollama runs on another computer | Set `OLLAMA_BASE_URL=http://<that-ip>:11434` in `.env` |
+| Question generation is very slow | Normal on CPU-only machines. Try a smaller model, `OLLAMA_LLM_MODEL=llama3.2:3b`, in `.env` |
+
 ## 2. Setup
 
 ```bash
-git clone <this-repo> RagBasedWebApplication
+git clone https://github.com/gurp1990/RagBasedWebApplication.git
 cd RagBasedWebApplication
 
-python -m venv .venv
 # Windows
+python -m venv .venv
 .venv\Scripts\activate
-# macOS / Linux
+# Linux / macOS
+python3 -m venv .venv
 source .venv/bin/activate
 
 pip install -r requirements.txt
 
+# models (skip if already pulled while installing Ollama)
 ollama pull gemma3:4b
 ollama pull nomic-embed-text
 
