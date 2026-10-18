@@ -1,52 +1,49 @@
 """
-Factories for the language model and the embedding model.
+Factories for the language model and the embedding model (Google Gemini API).
 
 Only this file knows which provider is used. To switch to another provider,
 change these two functions — the rest of the application stays the same.
+
+The API key is read from GOOGLE_API_KEY (put it in `.env`, never in code).
 """
 
 from functools import lru_cache
 
-from langchain_core.embeddings import Embeddings
-from langchain_ollama import ChatOllama, OllamaEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 
 from app.config import settings
 
 
-class PrefixedEmbeddings(Embeddings):
-    """
-    Adds task prefixes before embedding. Models such as nomic-embed-text are
-    trained with "search_query: " / "search_document: " prefixes; using them
-    separates relevant from unrelated text much more clearly.
-    """
-
-    def __init__(self, base: Embeddings, query_prefix: str, document_prefix: str):
-        self.base = base
-        self.query_prefix = query_prefix
-        self.document_prefix = document_prefix
-
-    def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        return self.base.embed_documents([self.document_prefix + t for t in texts])
-
-    def embed_query(self, text: str) -> list[float]:
-        return self.base.embed_query(self.query_prefix + text)
+def _api_key() -> str:
+    if not settings.google_api_key:
+        raise RuntimeError(
+            "GOOGLE_API_KEY is not set. Add it to the .env file in the project root "
+            "(get a key at https://aistudio.google.com/apikey)."
+        )
+    return settings.google_api_key
 
 
 @lru_cache
-def get_llm() -> ChatOllama:
+def get_llm() -> ChatGoogleGenerativeAI:
     """Chat model used for question generation."""
-    return ChatOllama(
-        model=settings.ollama_llm_model,
-        base_url=settings.ollama_base_url,
+    return ChatGoogleGenerativeAI(
+        model=settings.gemini_llm_model,
+        google_api_key=_api_key(),
         temperature=settings.llm_temperature,
+        max_retries=settings.llm_max_retries,
     )
 
 
 @lru_cache
-def get_embeddings() -> Embeddings:
-    """Embedding model used to vectorise chunks and queries."""
-    base = OllamaEmbeddings(
-        model=settings.ollama_embedding_model,
-        base_url=settings.ollama_base_url,
+def get_embeddings() -> GoogleGenerativeAIEmbeddings:
+    """
+    Embedding model used to vectorise chunks and queries.
+
+    Gemini embeds chunks with task type RETRIEVAL_DOCUMENT and queries with
+    RETRIEVAL_QUERY, which keeps relevant and unrelated text clearly apart.
+    """
+    return GoogleGenerativeAIEmbeddings(
+        model=settings.gemini_embedding_model,
+        google_api_key=_api_key(),
+        output_dimensionality=settings.embedding_dimensions,
     )
-    return PrefixedEmbeddings(base, settings.embed_query_prefix, settings.embed_document_prefix)

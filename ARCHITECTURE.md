@@ -1,6 +1,7 @@
 # Architecture overview
 
-The application is a small, fully local **Retrieval-Augmented Generation (RAG)** system.
+The application is a small **Retrieval-Augmented Generation (RAG)** system that uses the
+**Google Gemini API** for embeddings and the LLM, with ChromaDB stored locally.
 A PDF is turned into searchable vector chunks in ChromaDB. Those chunks are used for
 semantic search (retrieval) and as the only knowledge source for question generation.
 
@@ -20,8 +21,8 @@ semantic search (retrieval) and as the only knowledge source for question genera
                               └──────────────┬────────────────────────────┘
                                              │ embeddings / chat
                                              ▼
-                                   llm.py  ──►  Ollama
-                                   nomic-embed-text (embeddings), gemma3:4b (LLM)
+                                   llm.py  ──►  Google Gemini API (GOOGLE_API_KEY)
+                                   gemini-embedding-2 (embeddings), gemini-3.5-flash (LLM)
 ```
 
 Detailed diagrams, including the RAG function map and the database ER diagram, are in
@@ -32,7 +33,7 @@ Detailed diagrams, including the RAG function map and the database ER diagram, a
 | File | Responsibility |
 |---|---|
 | `config.py` | All settings, read from environment variables / `.env`. |
-| `llm.py` | Creates the Ollama chat model and embedding model. This is the only place to change to switch providers. |
+| `llm.py` | Creates the Gemini chat model and embedding model from `GOOGLE_API_KEY`. This is the only place to change to switch providers. |
 | `document_processor.py` | Extracts text page by page with `pypdf`. Cleans it (bullets, wrapped lines). Splits it with LangChain's `RecursiveCharacterTextSplitter`. Every chunk keeps `source`, `page` and `chunk_index`. |
 | `vector_store.py` | Everything ChromaDB: two persistent collections (`documents`, `questions`) using cosine distance. Saving, reading, similarity search and replacing data by source file. |
 | `ingestion.py` | Pipeline: PDF → chunks → ChromaDB. Re-ingesting a file replaces its old chunks. |
@@ -49,10 +50,10 @@ Detailed diagrams, including the RAG function map and the database ER diagram, a
    broken bullet glyphs and rejoins sentences that the PDF wrapped across lines. The text is
    split into ~500-character chunks with 80 characters of overlap. Each chunk is stored in
    ChromaDB with its page number, under an id like `computer_basics.pdf::chunk-3`.
-2. **Semantic search** – the query is embedded with the same model (`nomic-embed-text`).
-   Queries get the `search_query: ` prefix and chunks the `search_document: ` prefix, as the
-   model expects (see `PrefixedEmbeddings` in `llm.py`). ChromaDB returns the nearest chunks
-   by cosine similarity. Chunks scoring below `MIN_RELEVANCE_SCORE` (default 0.6) are
+2. **Semantic search** – the query is embedded with the same model (`gemini-embedding-2`,
+   768 dimensions). Gemini embeds queries with task type `RETRIEVAL_QUERY` and chunks with
+   `RETRIEVAL_DOCUMENT`. ChromaDB returns the nearest chunks by cosine similarity. Chunks
+   scoring below `MIN_RELEVANCE_SCORE` (default 0.59) are
    dropped, so an off-topic query returns "Not found in the document" instead of
    unrelated passages. The UI shows each matching passage, its page number and a
    relevance score.
@@ -60,7 +61,7 @@ Detailed diagrams, including the RAG function map and the database ER diagram, a
    runs these steps for each one:
    * The LLM returns structured JSON (a Pydantic schema via `with_structured_output`):
      `source_quote`, `question`, `correct_answer`, three `wrong_answers` and `explanation`.
-     Asking for the supporting sentence first keeps the small model anchored to the text.
+     Asking for the supporting sentence first keeps the model anchored to the text.
    * **Code checks:** exactly 3 distinct wrong answers, no duplicate question, and the quote
      must really appear in the passage (≥ 80 % word overlap).
    * The code shuffles the four options, so the correct answer is always one of them.
@@ -75,9 +76,12 @@ Detailed diagrams, including the RAG function map and the database ER diagram, a
 
 ## Design choices
 
-* **Everything runs locally:** Ollama serves both the LLM and the embeddings, and ChromaDB
-  persists to `./chroma_db`. No API keys are needed.
-* **LangChain is used where it helps:** text splitting, the Chroma and Ollama integrations,
+* **Hosted models, local data:** Gemini serves both the LLM and the embeddings (no GPU or
+  model download needed). ChromaDB persists locally to `./chroma_db_gemini`. The API key is
+  read from `.env`, which Git ignores. PDF text and queries are sent to the Gemini API.
+* **Rate limits:** the Gemini client retries with back-off (`LLM_MAX_RETRIES`), so free-tier
+  limits slow question generation down instead of failing it.
+* **LangChain is used where it helps:** text splitting, the Chroma and Gemini integrations,
   prompt templates and structured output. Plain Python handles everything else.
 * **Easy to change:** settings are in `.env`, prompts in `prompts.py`, and providers in
   `llm.py`. All ChromaDB code is in `vector_store.py`.

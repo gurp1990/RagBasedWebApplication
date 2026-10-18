@@ -21,29 +21,28 @@ def _env(name: str, default: str) -> str:
 
 @dataclass(frozen=True)
 class Settings:
-    # --- LLM / embeddings (Ollama) ---
-    llm_provider: str = _env("LLM_MODEL", "Ollama")
-    ollama_base_url: str = _env("OLLAMA_BASE_URL", "http://localhost:11434")
-    ollama_llm_model: str = _env("OLLAMA_LLM_MODEL", "gemma3:4b")
-    ollama_embedding_model: str = _env("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text")
+    # --- LLM / embeddings (Google Gemini API) ---
+    llm_provider: str = _env("LLM_MODEL", "Gemini")
+    google_api_key: str = _env("GOOGLE_API_KEY", "")
+    gemini_llm_model: str = _env("GEMINI_LLM_MODEL", "gemini-3.5-flash")
+    gemini_embedding_model: str = _env("GEMINI_EMBEDDING_MODEL", "gemini-embedding-2")
+    embedding_dimensions: int = int(_env("EMBEDDING_DIMENSIONS", "768"))
     llm_temperature: float = float(_env("LLM_TEMPERATURE", "0.2"))
-    # Task prefixes expected by nomic-embed-text; set both to "" for other models.
-    embed_query_prefix: str = _env("EMBED_QUERY_PREFIX", "search_query: ")
-    embed_document_prefix: str = _env("EMBED_DOCUMENT_PREFIX", "search_document: ")
+    llm_max_retries: int = int(_env("LLM_MAX_RETRIES", "6"))  # rides out API rate limits
 
     # --- Document processing ---
     chunk_size: int = int(_env("CHUNK_SIZE", "500"))
     chunk_overlap: int = int(_env("CHUNK_OVERLAP", "80"))
 
     # --- ChromaDB ---
-    chroma_dir: Path = PROJECT_ROOT / _env("CHROMA_DIR", "chroma_db")
+    chroma_dir: Path = PROJECT_ROOT / _env("CHROMA_DIR", "chroma_db_gemini")
     documents_collection: str = _env("DOCUMENTS_COLLECTION", "documents")
     questions_collection: str = _env("QUESTIONS_COLLECTION", "questions")
 
     # --- Retrieval / question generation ---
     search_top_k: int = int(_env("SEARCH_TOP_K", "4"))
     # Passages scoring below this (0..1) are treated as "not in the document".
-    min_relevance_score: float = float(_env("MIN_RELEVANCE_SCORE", "0.6"))
+    min_relevance_score: float = float(_env("MIN_RELEVANCE_SCORE", "0.59"))
     num_questions: int = int(_env("NUM_QUESTIONS", "5"))
 
     # --- Files ---

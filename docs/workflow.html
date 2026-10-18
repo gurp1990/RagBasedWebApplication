@@ -232,7 +232,7 @@ html { scroll-behavior: smooth; }
 
 <div class="page">
   <header>
-    <p class="eyebrow" style="margin-top:40px">RagBasedWebApplication · Python · LangChain · ChromaDB · Ollama</p>
+    <p class="eyebrow" style="margin-top:40px">RagBasedWebApplication · Python · LangChain · ChromaDB · Gemini</p>
     <h1 style="margin-top:6px">How the RAG app works</h1>
     <p class="lead">Three pipelines share one ChromaDB database. A PDF is processed and stored once.
       Semantic search and question generation both read from what was stored.
@@ -258,7 +258,7 @@ html { scroll-behavior: smooth; }
     <p class="lead" style="margin-bottom:16px">The LLM never answers from its own memory. The app first <b>retrieves</b> passages from the PDF stored in ChromaDB, <b>augments</b> the prompt with them, and only then lets the LLM <b>generate</b>. That is why every answer can point back to a page.</p>
 
     <div class="diagram-scroll">
-      <svg viewBox="0 0 990 392" role="img" aria-label="RAG usage: PDF indexed into ChromaDB; Retrieve passages, Augment the prompt, Generate with gemma3:4b; semantic search uses Retrieve only, question generation uses all three">
+      <svg viewBox="0 0 990 392" role="img" aria-label="RAG usage: PDF indexed into ChromaDB; Retrieve passages, Augment the prompt, Generate with gemini-3.5-flash; semantic search uses Retrieve only, question generation uses all three">
         <defs>
           <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path class="head" d="M0,0 L10,5 L0,10 z"/>
@@ -274,7 +274,7 @@ html { scroll-behavior: smooth; }
         <rect class="box ingest" x="380" y="24" width="160" height="52" rx="8"/>
         <text class="t" x="392" y="46">Chunk + page no.</text><text class="f" x="392" y="64">split_into_chunks()</text>
         <rect class="box ingest" x="570" y="24" width="160" height="52" rx="8"/>
-        <text class="t" x="582" y="46">Embed</text><text class="f" x="582" y="64">nomic-embed-text</text>
+        <text class="t" x="582" y="46">Embed</text><text class="f" x="582" y="64">gemini-embedding-2</text>
         <rect class="box ingest store" x="760" y="24" width="230" height="52" rx="8"/>
         <text class="t" x="772" y="46">ChromaDB "documents"</text><text class="f" x="772" y="64">vectors + text + page</text>
         <line class="arrow" x1="160" y1="50" x2="188" y2="50" marker-end="url(#ah2)"/>
@@ -309,7 +309,7 @@ html { scroll-behavior: smooth; }
         <circle class="badge" cx="716" cy="160" r="15"/><text class="badge-t" x="716" y="165" text-anchor="middle">G</text>
         <text class="t big" x="740" y="166">Generate</text>
         <text class="b" x="706" y="196">LLM writes from the passage</text>
-        <text class="f" x="706" y="213">get_llm() · Ollama gemma3:4b</text>
+        <text class="f" x="706" y="213">get_llm() · Gemini 3.5 Flash</text>
         <text class="b" x="706" y="240">JSON question, then checked twice</text>
         <text class="f" x="706" y="257">_find_problem() · _blind_answer_matches()</text>
 
@@ -378,11 +378,11 @@ html { scroll-behavior: smooth; }
         <text class="fn3" x="723" y="38">save_chunks()</text><text class="sub" x="723" y="53">vector_store.py</text>
         <line class="arrow" x1="700" y1="41" x2="714" y2="41" marker-end="url(#ah3)"/>
         <rect class="box fbox ingest" x="858" y="22" width="128" height="38" rx="6"/>
-        <text class="fn3" x="866" y="38">embed_documents()</text><text class="sub" x="866" y="53">nomic-embed-text</text>
+        <text class="fn3" x="866" y="38">embed_documents()</text><text class="sub" x="866" y="53">gemini-embedding-2</text>
         <line class="arrow" x1="843" y1="41" x2="857" y2="41" marker-end="url(#ah3)"/>
         <line class="arrow" x1="922" y1="60" x2="922" y2="86" marker-end="url(#ah3)"/>
         <rect class="box band" x="0" y="88" width="990" height="34" rx="8"/>
-        <text class="t" x="16" y="110">ChromaDB  (chroma_db/)</text>
+        <text class="t" x="16" y="110">ChromaDB  (chroma_db_gemini/)</text>
         <text class="sub" x="200" y="110">"documents": chunk text + vector + page   ·   "questions": stored MCQs   ·   grey boxes below read or write it</text>
         <circle class="badge" cx="12" cy="156" r="12"/><text class="badge-t sm" x="12" y="160" text-anchor="middle">R</text>
         <text class="t" x="32" y="161">RETRIEVE</text>
@@ -405,10 +405,10 @@ html { scroll-behavior: smooth; }
         <line class="arrow" x1="16" y1="250" x2="16" y2="261" marker-end="url(#ah3)"/>
         <rect class="box fbox search" x="0" y="312" width="228" height="38" rx="6"/>
         <text class="fn2" x="10" y="328">embed_query()</text>
-        <text class="sub" x="10" y="343">search_query: prefix</text>
+        <text class="sub" x="10" y="343">task type RETRIEVAL_QUERY</text>
         <line class="arrow" x1="16" y1="300" x2="16" y2="311" marker-end="url(#ah3)"/>
         <rect class="box fbox search" x="0" y="362" width="228" height="38" rx="6"/>
-        <text class="fn2" x="10" y="378">keep score ≥ 0.60</text>
+        <text class="fn2" x="10" y="378">keep score ≥ 0.59</text>
         <text class="sub" x="10" y="393">none left → “Not found”</text>
         <line class="arrow" x1="16" y1="350" x2="16" y2="361" marker-end="url(#ah3)"/>
         <rect class="box skip" x="254" y="212" width="228" height="188" rx="6"/>
@@ -460,7 +460,7 @@ html { scroll-behavior: smooth; }
         <line class="arrow" x1="270" y1="582" x2="270" y2="593" marker-end="url(#ah3)"/>
         <rect class="box fbox generate" x="508" y="444" width="228" height="38" rx="6"/>
         <text class="fn2" x="518" y="460">get_llm()</text>
-        <text class="sub" x="518" y="475">ChatOllama · gemma3:4b</text>
+        <text class="sub" x="518" y="475">ChatGoogleGenerativeAI · Gemini</text>
         <rect class="box fbox generate" x="508" y="494" width="228" height="38" rx="6"/>
         <text class="fn2" x="518" y="510">llm.with_structured_output()</text>
         <text class="sub" x="518" y="525">→ QuestionDraft JSON</text>
@@ -535,7 +535,7 @@ html { scroll-behavior: smooth; }
         <text class="t" x="406" y="48">Split into chunks</text><text class="f" x="406" y="68">split_into_chunks()</text>
         <rect class="box ingest" x="591" y="24" width="172" height="58" rx="8"/>
         <text class="t" x="603" y="48">Embed chunks</text><text class="f" x="603" y="68">embed_documents()</text>
-        <text class="tag" x="603" y="96">Ollama · nomic-embed-text</text>
+        <text class="tag" x="603" y="96">Gemini · gemini-embedding-2</text>
         <rect class="box ingest store" x="788" y="24" width="172" height="58" rx="8"/>
         <text class="t" x="800" y="48">ChromaDB "documents"</text><text class="f" x="800" y="68">save_chunks()</text>
         <line class="arrow" x1="172" y1="53" x2="195" y2="53" marker-end="url(#ah)"/>
@@ -549,11 +549,11 @@ html { scroll-behavior: smooth; }
         <text class="t" x="12" y="168">User asks a question</text><text class="f" x="12" y="188">search_page()</text>
         <rect class="box search" x="197" y="144" width="172" height="58" rx="8"/>
         <text class="t" x="209" y="168">Embed the query</text><text class="f" x="209" y="188">embed_query()</text>
-        <text class="tag" x="209" y="216">Ollama · nomic-embed-text</text>
+        <text class="tag" x="209" y="216">Gemini · gemini-embedding-2</text>
         <rect class="box search store" x="394" y="144" width="172" height="58" rx="8"/>
         <text class="t" x="406" y="168">Find nearest chunks</text><text class="f" x="406" y="188">similarity_search()</text>
         <rect class="box search" x="591" y="144" width="172" height="58" rx="8"/>
-        <text class="t" x="603" y="168">Drop scores &lt; 0.60</text><text class="f" x="603" y="188">search()</text>
+        <text class="t" x="603" y="168">Drop scores &lt; 0.59</text><text class="f" x="603" y="188">search()</text>
         <rect class="box search" x="788" y="144" width="172" height="58" rx="8"/>
         <text class="t" x="800" y="168">Show passage + page</text><text class="f" x="800" y="188">search.html</text>
         <line class="arrow" x1="172" y1="173" x2="195" y2="173" marker-end="url(#ah)"/>
@@ -565,8 +565,8 @@ html { scroll-behavior: smooth; }
 
         <!-- Lane 3: question generation (boxes 143 wide, step 163) -->
         <text class="lane generate" x="0" y="262">3 · QUESTION GENERATION</text>
-        <text class="tag" x="306" y="266" text-anchor="end">Ollama · gemma3:4b</text>
-        <text class="tag" x="632" y="266" text-anchor="end">Ollama · gemma3:4b</text>
+        <text class="tag" x="306" y="266" text-anchor="end">Gemini · gemini-3.5-flash</text>
+        <text class="tag" x="632" y="266" text-anchor="end">Gemini · gemini-3.5-flash</text>
         <rect class="box generate" x="0"   y="272" width="143" height="58" rx="8"/>
         <text class="t" x="10" y="296">Pick passages</text><text class="f" x="10" y="316">candidate_passages()</text>
         <rect class="box generate" x="163" y="272" width="143" height="58" rx="8"/>
@@ -595,9 +595,9 @@ html { scroll-behavior: smooth; }
     </div>
 
     <div class="shared">
-      <div><b><code>config.py</code> · <code>settings</code></b><p>Every setting (models, chunk size, top-k, 0.60 threshold) is read from <code>.env</code>.</p></div>
-      <div><b><code>llm.py</code> · <code>get_llm()</code>, <code>get_embeddings()</code></b><p>The only place that knows the provider is Ollama.</p></div>
-      <div><b><code>vector_store.py</code></b><p>All ChromaDB code. Two collections, <code>documents</code> and <code>questions</code>, saved in <code>chroma_db/</code>.</p></div>
+      <div><b><code>config.py</code> · <code>settings</code></b><p>Every setting (models, chunk size, top-k, 0.59 threshold, API key) is read from <code>.env</code>.</p></div>
+      <div><b><code>llm.py</code> · <code>get_llm()</code>, <code>get_embeddings()</code></b><p>The only place that knows the provider is Gemini. Reads GOOGLE_API_KEY.</p></div>
+      <div><b><code>vector_store.py</code></b><p>All ChromaDB code. Two collections, <code>documents</code> and <code>questions</code>, saved in <code>chroma_db_gemini/</code>.</p></div>
       <div><b><code>main.py</code> · <code>cli.py</code></b><p>The web pages and the command line call the same functions.</p></div>
     </div>
   </section>
@@ -658,12 +658,12 @@ html { scroll-behavior: smooth; }
       <li class="step"><div class="rail"><span class="step-num">5</span></div>
         <div class="step-body">
           <h3>Embed and store in ChromaDB</h3>
-          <p>Old chunks of the same file are deleted first, so re-ingesting never creates duplicates. Each chunk is turned into a vector by <code>nomic-embed-text</code> with the prefix <code>search_document: </code>, then saved with its text and metadata.</p>
+          <p>Old chunks of the same file are deleted first, so re-ingesting never creates duplicates. Each chunk is turned into a 768-number vector by <code>gemini-embedding-2</code> with task type <code>RETRIEVAL_DOCUMENT</code>, then saved with its text and metadata.</p>
           <div class="fns">
             <span class="fn"><span class="file">vector_store.py › </span>save_chunks()</span>
             <span class="fn"><span class="file">vector_store.py › </span>delete_by_source()</span>
             <span class="fn"><span class="file">vector_store.py › </span>documents_store()</span>
-            <span class="fn"><span class="file">llm.py › </span>PrefixedEmbeddings.embed_documents()</span>
+            <span class="fn"><span class="file">llm.py › </span>GoogleGenerativeAIEmbeddings.embed_documents()</span>
           </div>
           <dl class="io"><dt>Out</dt><dd>collection <code>documents</code> · ids like <code>computer_basics.pdf::chunk-3</code> · cosine distance</dd></dl>
         </div></li>
@@ -696,15 +696,15 @@ html { scroll-behavior: smooth; }
       <li class="step"><div class="rail"><span class="step-num">2</span></div>
         <div class="step-body">
           <h3>Run the search</h3>
-          <p>Trims the query and fills in defaults from settings: up to 4 results and a minimum relevance of 0.60.</p>
+          <p>Trims the query and fills in defaults from settings: up to 4 results and a minimum relevance of 0.59.</p>
           <div class="fns"><span class="fn"><span class="file">semantic_search.py › </span>search(query, top_k, source, min_score)</span></div>
         </div></li>
 
       <li class="step"><div class="rail"><span class="step-num">3</span></div>
         <div class="step-body">
           <h3>Embed the query</h3>
-          <p>The query gets the prefix <code>search_query: </code> and goes through the same embedding model as the chunks, so both are vectors in the same space.</p>
-          <div class="fns"><span class="fn"><span class="file">llm.py › </span>PrefixedEmbeddings.embed_query()</span></div>
+          <p>The query is embedded by the same Gemini model as the chunks, with task type <code>RETRIEVAL_QUERY</code>, so both are vectors in the same space.</p>
+          <div class="fns"><span class="fn"><span class="file">llm.py › </span>GoogleGenerativeAIEmbeddings.embed_query()</span></div>
         </div></li>
 
       <li class="step"><div class="rail"><span class="step-num">4</span></div>
@@ -720,9 +720,9 @@ html { scroll-behavior: smooth; }
       <li class="step"><div class="rail"><span class="step-num">5</span></div>
         <div class="step-body">
           <h3>Drop weak matches</h3>
-          <p>Chunks scoring below 0.60 are removed. If nothing is left, the query is not about this document, and the page says so instead of showing unrelated text.</p>
+          <p>Chunks scoring below 0.59 are removed. If nothing is left, the query is not about this document, and the page says so instead of showing unrelated text.</p>
           <div class="fns"><span class="fn"><span class="file">vector_store.py › </span>similarity_search(…, min_score)</span></div>
-          <p class="note">Measured on the sample PDF: real questions score 0.64–0.76, unrelated questions 0.41–0.56.</p>
+          <p class="note">Measured on the sample PDF: real questions score 0.61–0.77, unrelated questions 0.48–0.57.</p>
         </div></li>
 
       <li class="step"><div class="rail"><span class="step-num">6</span></div>
@@ -739,12 +739,13 @@ html { scroll-behavior: smooth; }
     <div class="example">
       <p class="eyebrow">Worked example · computer_basics.pdf</p>
 <pre>"Difference between RAM and ROM"
-  #1  page 1 · chunk 1 · 0.75  "• Memory: RAM is temporary (volatile) memory … ROM is permanent …"
-  #2  page 1 · chunk 3 · 0.61
-  #3  page 1 · chunk 2 · 0.61
+  #1  page 1 · chunk 1 · 0.74  "• Memory: RAM is temporary (volatile) memory … ROM is permanent …"
+  #2  page 1 · chunk 3 · 0.68
+  #3  page 1 · chunk 2 · 0.67
+  #4  page 1 · chunk 0 · 0.66
 
 "capital of India"
-  no chunk ≥ 0.60  →  "Not found in the document."</pre>
+  no chunk ≥ 0.59  →  "Not found in the document."</pre>
     </div>
   </section>
 
@@ -757,7 +758,7 @@ html { scroll-behavior: smooth; }
         <p class="lead">The LLM writes 5 multiple-choice questions, each from one stored passage. Each question is checked twice before it is saved.</p>
       </div>
     </div>
-    <p class="where">Runs when you click <b>Generate questions</b> (<code>POST /questions/generate</code>) or with <code>python -m app.cli generate</code>. Takes about 1–3 minutes with <code>gemma3:4b</code>.</p>
+    <p class="where">Runs when you click <b>Generate questions</b> (<code>POST /questions/generate</code>) or with <code>python -m app.cli generate</code>. Takes about 1–2 minutes with <code>gemini-3.5-flash</code>.</p>
 
     <ol class="steps">
       <li class="step"><div class="rail"><span class="step-num">1</span></div>
@@ -855,12 +856,12 @@ html { scroll-behavior: smooth; }
     <div class="example">
       <p class="eyebrow">Worked example · one stored question</p>
 <pre>Passage   chunk 1, page 1
-Quote     "Memory: RAM is temporary (volatile) memory that loses data when power is off. …"
-Question  What characteristic best describes RAM memory?
-          A) start-up instructions
-          B) permanent (non-volatile)
-          C) solid state drive
-          D) temporary (volatile)        ← correct (draft) = blind answer ✓
+Quote     "ROM is permanent (non-volatile) memory that stores start-up instructions."
+Question  Which type of memory is permanent and stores start-up instructions?
+          A) ROM                         ← correct (draft) = blind answer ✓
+          B) RAM
+          C) HDD
+          D) Motherboard
 Check 1   3 distinct wrong answers ✓   quote found in passage ✓</pre>
     </div>
   </section>
@@ -979,8 +980,8 @@ Check 1   3 distinct wrong answers ✓   quote found in passage ✓</pre>
     </div>
 
     <div class="er-facts">
-      <div><b>On disk</b><p><code>chroma_db/chroma.sqlite3</code> holds ids, text and metadata. Each collection also has its own folder with an HNSW vector index (cosine distance).</p></div>
-      <div><b>Right now</b><p><code>documents</code>: 15 chunks (computer_basics.pdf 5, Core_Java_Matrix_Practice_Sheet.pdf 10). <code>questions</code>: 10 (5 per PDF).</p></div>
+      <div><b>On disk</b><p><code>chroma_db_gemini/chroma.sqlite3</code> holds ids, text and metadata. Each collection also has its own folder with an HNSW vector index (cosine distance).</p></div>
+      <div><b>Right now</b><p><code>documents</code>: 5 chunks (computer_basics.pdf). <code>questions</code>: 5.</p></div>
       <div><b>Written by</b><p><code>save_chunks()</code> and <code>save_questions()</code> in <code>vector_store.py</code>. Both delete a PDF’s old records first via <code>delete_by_source()</code>.</p></div>
     </div>
 
@@ -988,7 +989,7 @@ Check 1   3 distinct wrong answers ✓   quote found in passage ✓</pre>
     <div class="table-scroll"><table class="er-table"><thead><tr><th>Field</th><th>Type</th><th>Example</th><th>Purpose</th></tr></thead><tbody><tr><td><code>id</code></td><td>str (PK)</td><td>computer_basics.pdf::chunk-3</td><td>&lt;source&gt;::chunk-&lt;chunk_index&gt;; re-ingesting a PDF replaces the same ids</td></tr>
 <tr><td><code>document</code></td><td>str</td><td>4. Units of Memory
 The smallest unit is a bit…</td><td>Chunk text (≈500 chars) shown in search results</td></tr>
-<tr><td><code>embedding</code></td><td>float[768]</td><td>[0.012, -0.044, …]</td><td>nomic-embed-text vector of &#x27;search_document: &#x27; + text</td></tr>
+<tr><td><code>embedding</code></td><td>float[768]</td><td>[0.012, -0.044, …]</td><td>gemini-embedding-2 vector (768 numbers, task type RETRIEVAL_DOCUMENT)</td></tr>
 <tr><td><code>source</code></td><td>str (FK)</td><td>computer_basics.pdf</td><td>PDF file name; used to filter and to delete old chunks</td></tr>
 <tr><td><code>page</code></td><td>int</td><td>1</td><td>1-based page number shown as the page badge</td></tr>
 <tr><td><code>chunk_index</code></td><td>int</td><td>3</td><td>Order of the chunk in the PDF</td></tr></tbody></table></div>
@@ -1018,7 +1019,7 @@ The smallest unit is a bit…</td><td>Chunk text (≈500 chars) shown in search 
         <thead><tr><th>File</th><th>Job</th><th>Main functions</th></tr></thead>
         <tbody>
           <tr><td>config.py</td><td>Settings from <code>.env</code></td><td><span class="fn">Settings</span><span class="fn">settings</span></td></tr>
-          <tr><td>llm.py</td><td>Ollama models</td><td><span class="fn">get_llm()</span><span class="fn">get_embeddings()</span><span class="fn">PrefixedEmbeddings</span></td></tr>
+          <tr><td>llm.py</td><td>Gemini models</td><td><span class="fn">get_llm()</span><span class="fn">get_embeddings()</span><span class="fn">_api_key()</span></td></tr>
           <tr><td>document_processor.py</td><td>PDF → clean chunks</td><td><span class="fn">process_pdf()</span><span class="fn">load_pdf()</span><span class="fn">clean_text()</span><span class="fn">split_into_chunks()</span></td></tr>
           <tr><td>ingestion.py</td><td>PDF → ChromaDB</td><td><span class="fn">ingest_pdf()</span><span class="fn">ingest_samples()</span></td></tr>
           <tr><td>vector_store.py</td><td>All ChromaDB access</td><td><span class="fn">save_chunks()</span><span class="fn">get_chunks()</span><span class="fn">list_sources()</span><span class="fn">similarity_search()</span><span class="fn">save_questions()</span><span class="fn">get_questions()</span><span class="fn">delete_by_source()</span></td></tr>

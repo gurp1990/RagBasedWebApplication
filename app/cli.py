@@ -49,7 +49,7 @@ def cmd_search(args) -> None:
 
 def cmd_generate(args) -> None:
     source = args.source or _first_source()
-    print(f"Generating questions for {source} with {settings.ollama_llm_model} ...")
+    print(f"Generating questions for {source} with {settings.gemini_llm_model} ...")
     for i, q in enumerate(generate_questions(source), start=1):
         print(f"\nQ{i}. {q['question']}  (page {q['page']})")
         for letter, option in zip("ABCD", q["options"]):
@@ -79,7 +79,7 @@ def cmd_export(args) -> None:
         "static_export": True,
         "inline_css": (APP_DIR / "static" / "style.css").read_text(encoding="utf-8"),
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "model": settings.ollama_llm_model,
+        "model": settings.gemini_llm_model,
         "settings": settings,
         "min_score": settings.min_relevance_score,
     }

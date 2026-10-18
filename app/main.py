@@ -49,7 +49,7 @@ async def lifespan(_: FastAPI):
         if not vector_store.list_sources():
             log.info("Empty database - ingesting sample PDFs: %s", ingest_samples())
     except Exception as error:
-        log.error("Could not ingest samples (is Ollama running?): %s", error)
+        log.error("Could not ingest samples (is GOOGLE_API_KEY set in .env?): %s", error)
     yield
 
 

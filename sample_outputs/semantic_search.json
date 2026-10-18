@@ -7,28 +7,28 @@
         "source": "computer_basics.pdf",
         "page": 1,
         "chunk_index": 0,
-        "score": 0.7584583163261414
+        "score": 0.771325409412384
       },
       {
-        "text": "• Fifth (present and beyond): artificial intelligence (AI)\n6. Important Terms\n• Internet: a global network connecting millions of computers.\n• Virus: a harmful program that can damage data; antivirus software protects against it.\n• Binary system: computers understand only two digits, 0 and 1.",
+        "text": "• Memory: RAM is temporary (volatile) memory that loses data when power is off. ROM is permanent (non-volatile) memory that stores start-up instructions.\n• Storage: HDD (hard disk drive), SSD (solid state drive, faster), and pen drives keep data permanently.\n• Motherboard: the main circuit board that connects all components.\n2. Input and Output Devices\nInput Devices\nOutput Devices\nKeyboard, Mouse\nMonitor\nScanner, Microphone\nPrinter, Speakers\nWebcam, Joystick\nProjector, Headphones",
         "source": "computer_basics.pdf",
         "page": 1,
-        "chunk_index": 4,
-        "score": 0.7046037912368774
+        "chunk_index": 1,
+        "score": 0.6907819509506226
       },
       {
         "text": "4. Units of Memory\nThe smallest unit is a bit (0 or 1). 8 bits = 1 Byte; 1024 Bytes = 1 Kilobyte (KB); 1024 KB = 1 Megabyte (MB); 1024 MB = 1 Gigabyte (GB); 1024 GB = 1 Terabyte (TB).\n5. Generations of Computers\n• First (1940–56): vacuum tubes\n• Second (1956–63): transistors\n• Third (1964–71): integrated circuits (ICs)\n• Fourth (1971–present): microprocessors\n• Fifth (present and beyond): artificial intelligence (AI)\n6. Important Terms",
         "source": "computer_basics.pdf",
         "page": 1,
         "chunk_index": 3,
-        "score": 0.6907482743263245
+        "score": 0.6787117719650269
       },
       {
         "text": "Scanner, Microphone\nPrinter, Speakers\nWebcam, Joystick\nProjector, Headphones\n3. Hardware and Software\nHardware is the physical part of a computer that we can touch. Software is a set of programs that tells the hardware what to do. Software is of two types:\n• System software: runs the computer, e.g. Operating Systems such as Windows, Linux, macOS and\nAndroid.\n• Application software: does specific tasks, e.g. MS Word, web browsers, games, and calculators.\n4. Units of Memory",
         "source": "computer_basics.pdf",
         "page": 1,
         "chunk_index": 2,
-        "score": 0.6631339192390442
+        "score": 0.6782956123352051
       }
     ]
   },
@@ -40,21 +40,28 @@
         "source": "computer_basics.pdf",
         "page": 1,
         "chunk_index": 1,
-        "score": 0.7458633184432983
+        "score": 0.7358105778694153
       },
       {
         "text": "4. Units of Memory\nThe smallest unit is a bit (0 or 1). 8 bits = 1 Byte; 1024 Bytes = 1 Kilobyte (KB); 1024 KB = 1 Megabyte (MB); 1024 MB = 1 Gigabyte (GB); 1024 GB = 1 Terabyte (TB).\n5. Generations of Computers\n• First (1940–56): vacuum tubes\n• Second (1956–63): transistors\n• Third (1964–71): integrated circuits (ICs)\n• Fourth (1971–present): microprocessors\n• Fifth (present and beyond): artificial intelligence (AI)\n6. Important Terms",
         "source": "computer_basics.pdf",
         "page": 1,
         "chunk_index": 3,
-        "score": 0.6146228313446045
+        "score": 0.6813956499099731
       },
       {
         "text": "Scanner, Microphone\nPrinter, Speakers\nWebcam, Joystick\nProjector, Headphones\n3. Hardware and Software\nHardware is the physical part of a computer that we can touch. Software is a set of programs that tells the hardware what to do. Software is of two types:\n• System software: runs the computer, e.g. Operating Systems such as Windows, Linux, macOS and\nAndroid.\n• Application software: does specific tasks, e.g. MS Word, web browsers, games, and calculators.\n4. Units of Memory",
         "source": "computer_basics.pdf",
         "page": 1,
         "chunk_index": 2,
-        "score": 0.6076043844223022
+        "score": 0.6748274564743042
+      },
+      {
+        "text": "Computer Basics\nA computer is an electronic device that accepts data (input), processes it according to instructions (programs), stores it, and produces results (output). Charles Babbage is known as the Father of the\nComputer for designing the Analytical Engine in the 1830s.\n1. Main Parts of a Computer\n• CPU (Central Processing Unit): the \"brain\" of the computer. It has the ALU (Arithmetic Logic Unit), which does calculations, and the CU (Control Unit), which directs operations.",
+        "source": "computer_basics.pdf",
+        "page": 1,
+        "chunk_index": 0,
+        "score": 0.6592628955841064
       }
     ]
   },
@@ -66,21 +73,28 @@
         "source": "computer_basics.pdf",
         "page": 1,
         "chunk_index": 1,
-        "score": 0.6448475122451782
-      },
-      {
-        "text": "Computer Basics\nA computer is an electronic device that accepts data (input), processes it according to instructions (programs), stores it, and produces results (output). Charles Babbage is known as the Father of the\nComputer for designing the Analytical Engine in the 1830s.\n1. Main Parts of a Computer\n• CPU (Central Processing Unit): the \"brain\" of the computer. It has the ALU (Arithmetic Logic Unit), which does calculations, and the CU (Control Unit), which directs operations.",
-        "source": "computer_basics.pdf",
-        "page": 1,
-        "chunk_index": 0,
-        "score": 0.6202422976493835
+        "score": 0.6955983638763428
       },
       {
         "text": "Scanner, Microphone\nPrinter, Speakers\nWebcam, Joystick\nProjector, Headphones\n3. Hardware and Software\nHardware is the physical part of a computer that we can touch. Software is a set of programs that tells the hardware what to do. Software is of two types:\n• System software: runs the computer, e.g. Operating Systems such as Windows, Linux, macOS and\nAndroid.\n• Application software: does specific tasks, e.g. MS Word, web browsers, games, and calculators.\n4. Units of Memory",
         "source": "computer_basics.pdf",
         "page": 1,
         "chunk_index": 2,
-        "score": 0.6108306050300598
+        "score": 0.6788434982299805
+      },
+      {
+        "text": "Computer Basics\nA computer is an electronic device that accepts data (input), processes it according to instructions (programs), stores it, and produces results (output). Charles Babbage is known as the Father of the\nComputer for designing the Analytical Engine in the 1830s.\n1. Main Parts of a Computer\n• CPU (Central Processing Unit): the \"brain\" of the computer. It has the ALU (Arithmetic Logic Unit), which does calculations, and the CU (Control Unit), which directs operations.",
+        "source": "computer_basics.pdf",
+        "page": 1,
+        "chunk_index": 0,
+        "score": 0.6317132711410522
+      },
+      {
+        "text": "4. Units of Memory\nThe smallest unit is a bit (0 or 1). 8 bits = 1 Byte; 1024 Bytes = 1 Kilobyte (KB); 1024 KB = 1 Megabyte (MB); 1024 MB = 1 Gigabyte (GB); 1024 GB = 1 Terabyte (TB).\n5. Generations of Computers\n• First (1940–56): vacuum tubes\n• Second (1956–63): transistors\n• Third (1964–71): integrated circuits (ICs)\n• Fourth (1971–present): microprocessors\n• Fifth (present and beyond): artificial intelligence (AI)\n6. Important Terms",
+        "source": "computer_basics.pdf",
+        "page": 1,
+        "chunk_index": 3,
+        "score": 0.5958391427993774
       }
     ]
   },
@@ -92,7 +106,28 @@
         "source": "computer_basics.pdf",
         "page": 1,
         "chunk_index": 3,
-        "score": 0.7606986165046692
+        "score": 0.6879256963729858
+      },
+      {
+        "text": "Scanner, Microphone\nPrinter, Speakers\nWebcam, Joystick\nProjector, Headphones\n3. Hardware and Software\nHardware is the physical part of a computer that we can touch. Software is a set of programs that tells the hardware what to do. Software is of two types:\n• System software: runs the computer, e.g. Operating Systems such as Windows, Linux, macOS and\nAndroid.\n• Application software: does specific tasks, e.g. MS Word, web browsers, games, and calculators.\n4. Units of Memory",
+        "source": "computer_basics.pdf",
+        "page": 1,
+        "chunk_index": 2,
+        "score": 0.6529169082641602
+      },
+      {
+        "text": "Computer Basics\nA computer is an electronic device that accepts data (input), processes it according to instructions (programs), stores it, and produces results (output). Charles Babbage is known as the Father of the\nComputer for designing the Analytical Engine in the 1830s.\n1. Main Parts of a Computer\n• CPU (Central Processing Unit): the \"brain\" of the computer. It has the ALU (Arithmetic Logic Unit), which does calculations, and the CU (Control Unit), which directs operations.",
+        "source": "computer_basics.pdf",
+        "page": 1,
+        "chunk_index": 0,
+        "score": 0.6377388834953308
+      },
+      {
+        "text": "• Memory: RAM is temporary (volatile) memory that loses data when power is off. ROM is permanent (non-volatile) memory that stores start-up instructions.\n• Storage: HDD (hard disk drive), SSD (solid state drive, faster), and pen drives keep data permanently.\n• Motherboard: the main circuit board that connects all components.\n2. Input and Output Devices\nInput Devices\nOutput Devices\nKeyboard, Mouse\nMonitor\nScanner, Microphone\nPrinter, Speakers\nWebcam, Joystick\nProjector, Headphones",
+        "source": "computer_basics.pdf",
+        "page": 1,
+        "chunk_index": 1,
+        "score": 0.6335563659667969
       }
     ]
   },
@@ -100,32 +135,32 @@
     "query": "What technology did the second generation of computers use?",
     "results": [
       {
-        "text": "Computer Basics\nA computer is an electronic device that accepts data (input), processes it according to instructions (programs), stores it, and produces results (output). Charles Babbage is known as the Father of the\nComputer for designing the Analytical Engine in the 1830s.\n1. Main Parts of a Computer\n• CPU (Central Processing Unit): the \"brain\" of the computer. It has the ALU (Arithmetic Logic Unit), which does calculations, and the CU (Control Unit), which directs operations.",
-        "source": "computer_basics.pdf",
-        "page": 1,
-        "chunk_index": 0,
-        "score": 0.6979170441627502
-      },
-      {
         "text": "4. Units of Memory\nThe smallest unit is a bit (0 or 1). 8 bits = 1 Byte; 1024 Bytes = 1 Kilobyte (KB); 1024 KB = 1 Megabyte (MB); 1024 MB = 1 Gigabyte (GB); 1024 GB = 1 Terabyte (TB).\n5. Generations of Computers\n• First (1940–56): vacuum tubes\n• Second (1956–63): transistors\n• Third (1964–71): integrated circuits (ICs)\n• Fourth (1971–present): microprocessors\n• Fifth (present and beyond): artificial intelligence (AI)\n6. Important Terms",
         "source": "computer_basics.pdf",
         "page": 1,
         "chunk_index": 3,
-        "score": 0.6711058616638184
-      },
-      {
-        "text": "Scanner, Microphone\nPrinter, Speakers\nWebcam, Joystick\nProjector, Headphones\n3. Hardware and Software\nHardware is the physical part of a computer that we can touch. Software is a set of programs that tells the hardware what to do. Software is of two types:\n• System software: runs the computer, e.g. Operating Systems such as Windows, Linux, macOS and\nAndroid.\n• Application software: does specific tasks, e.g. MS Word, web browsers, games, and calculators.\n4. Units of Memory",
-        "source": "computer_basics.pdf",
-        "page": 1,
-        "chunk_index": 2,
-        "score": 0.6626063585281372
+        "score": 0.6756340861320496
       },
       {
         "text": "• Fifth (present and beyond): artificial intelligence (AI)\n6. Important Terms\n• Internet: a global network connecting millions of computers.\n• Virus: a harmful program that can damage data; antivirus software protects against it.\n• Binary system: computers understand only two digits, 0 and 1.",
         "source": "computer_basics.pdf",
         "page": 1,
         "chunk_index": 4,
-        "score": 0.6145575046539307
+        "score": 0.6511180996894836
+      },
+      {
+        "text": "• Memory: RAM is temporary (volatile) memory that loses data when power is off. ROM is permanent (non-volatile) memory that stores start-up instructions.\n• Storage: HDD (hard disk drive), SSD (solid state drive, faster), and pen drives keep data permanently.\n• Motherboard: the main circuit board that connects all components.\n2. Input and Output Devices\nInput Devices\nOutput Devices\nKeyboard, Mouse\nMonitor\nScanner, Microphone\nPrinter, Speakers\nWebcam, Joystick\nProjector, Headphones",
+        "source": "computer_basics.pdf",
+        "page": 1,
+        "chunk_index": 1,
+        "score": 0.6329110860824585
+      },
+      {
+        "text": "Computer Basics\nA computer is an electronic device that accepts data (input), processes it according to instructions (programs), stores it, and produces results (output). Charles Babbage is known as the Father of the\nComputer for designing the Analytical Engine in the 1830s.\n1. Main Parts of a Computer\n• CPU (Central Processing Unit): the \"brain\" of the computer. It has the ALU (Arithmetic Logic Unit), which does calculations, and the CU (Control Unit), which directs operations.",
+        "source": "computer_basics.pdf",
+        "page": 1,
+        "chunk_index": 0,
+        "score": 0.6309630274772644
       }
     ]
   },

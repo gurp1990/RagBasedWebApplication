@@ -1,6 +1,7 @@
-# RAG PDF Assistant — Semantic Search & Question Generation
+# RAG PDF Assistant — Semantic Search & Question Generation (Gemini)
 
-A fully local **Retrieval-Augmented Generation** web application written in Python.
+A **Retrieval-Augmented Generation** web application written in Python, powered by the
+**Google Gemini API**.
 
 * **Document processing:** loads a PDF, extracts the text page by page, splits it into chunks
   with page-number metadata and stores them in **ChromaDB**.
@@ -12,7 +13,10 @@ A fully local **Retrieval-Augmented Generation** web application written in Pyth
 * **Web UI:** HTML pages for documents, semantic search and an interactive quiz, plus a
   JSON API.
 
-Stack: **Python · LangChain · ChromaDB · Ollama (`gemma3:4b` LLM, `nomic-embed-text` embeddings) · FastAPI**
+Stack: **Python · LangChain · ChromaDB · Google Gemini (`gemini-3.5-flash` LLM, `gemini-embedding-2` embeddings) · FastAPI**
+
+> **Branch note:** this is the `gemini_online_implementation` branch. The `main` branch runs
+> fully offline with Ollama instead.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the architecture overview, and
 [docs/workflow.html](docs/workflow.html) for the diagrams. Download that file and open it in a
@@ -31,111 +35,77 @@ browser, since GitHub shows HTML files as source code. It contains:
 | Requirement | Notes |
 |---|---|
 | Python 3.11+ | Tested with 3.11 |
-| [Ollama](https://ollama.com) | Must be running locally (`http://localhost:11434`) |
-| Ollama models | `ollama pull gemma3:4b` and `ollama pull nomic-embed-text` |
+| Google Gemini API key | Free to create at <https://aistudio.google.com/apikey> |
+| Internet connection | Embeddings and question generation call the Gemini API |
 
-**Hardware:** `gemma3:4b` needs about 3.3 GB of disk space and works best with 8 GB of RAM or
-more. A GPU (NVIDIA or AMD) is used automatically if present. Without one, the app still works
-on the CPU, but question generation is slower.
+No GPU and no local model download are needed: the models run on Google's servers.
 
-### Install Ollama and the models
+**Privacy:** the text of every PDF you ingest, and every search query, is sent to the Gemini
+API. Don't use this branch for confidential documents. Use the Ollama version on `main`
+instead.
 
-The app needs two Ollama models:
+### Get a Gemini API key
 
-| Model | Size | Used for |
-|---|---|---|
-| `gemma3:4b` | ~3.3 GB | LLM that writes and checks the questions |
-| `nomic-embed-text` | ~0.3 GB | Embeddings for chunks and search queries |
+1. Open <https://aistudio.google.com/apikey> and sign in with a Google account.
+2. Click **Create API key** and copy it.
+3. Keep it secret. It goes only into the `.env` file (see Setup), which Git ignores. Never
+   put it in code, in the README or in a commit.
 
-#### Windows (10 / 11)
+The app uses these two models:
 
-1. **Install Ollama.** Choose one option:
-   * Download and run **OllamaSetup.exe** from <https://ollama.com/download/windows>, or
-   * In PowerShell, run:
-     ```powershell
-     winget install Ollama.Ollama
-     ```
-2. **Open a new PowerShell window** so the `ollama` command is found, then check it:
-   ```powershell
-   ollama --version
-   ```
-   Ollama starts automatically and runs in the background (llama icon in the system tray).
-3. **Download the models:**
-   ```powershell
-   ollama pull gemma3:4b
-   ollama pull nomic-embed-text
-   ```
-4. **Check that everything is ready:**
-   ```powershell
-   ollama list                                  # both models should be listed
-   ollama run gemma3:4b "Say hello in one line" # the model should answer
-   curl.exe http://localhost:11434/api/tags     # the API should return JSON
-   ```
-
-Models are stored in `%USERPROFILE%\.ollama\models`. To use another drive, set the
-`OLLAMA_MODELS` environment variable to a new folder and restart Ollama.
-
-#### Linux (Ubuntu, Debian, Fedora, …)
-
-1. **Install Ollama** with the official script:
-   ```bash
-   curl -fsSL https://ollama.com/install.sh | sh
-   ```
-   This installs the `ollama` command and a **systemd service** that starts Ollama in the background.
-2. **Check that the service is running:**
-   ```bash
-   ollama --version
-   sudo systemctl status ollama          # should show "active (running)"
-   sudo systemctl enable --now ollama    # start it now and on every boot, if needed
-   ```
-   On a system without systemd (for example WSL without systemd, or a container), run
-   `ollama serve` in a separate terminal and leave it open.
-3. **Download the models:**
-   ```bash
-   ollama pull gemma3:4b
-   ollama pull nomic-embed-text
-   ```
-4. **Check that everything is ready:**
-   ```bash
-   ollama list                                  # both models should be listed
-   ollama run gemma3:4b "Say hello in one line" # the model should answer
-   curl http://localhost:11434/api/tags         # the API should return JSON
-   ```
-5. **Python:** make sure Python 3.11+ and venv are installed. On Ubuntu/Debian, run
-   `sudo apt install python3 python3-venv python3-pip`.
-
-#### If something goes wrong
-
-| Problem | Fix |
+| Model | Used for |
 |---|---|
-| `ollama` is not recognised (Windows) | Open a new terminal after installing, or sign out and back in |
-| `could not connect to ollama` / `connection refused` | Start Ollama: on Windows open the Ollama app; on Linux run `sudo systemctl start ollama` (or `ollama serve`) |
-| `model "gemma3:4b" not found` | Run `ollama pull gemma3:4b` (check spelling with `ollama list`) |
-| Port 11434 already in use | Another Ollama instance is already running, which is fine. Otherwise stop the other program |
-| Ollama runs on another computer | Set `OLLAMA_BASE_URL=http://<that-ip>:11434` in `.env` |
-| Question generation is very slow | Normal on CPU-only machines. Try a smaller model, `OLLAMA_LLM_MODEL=llama3.2:3b`, in `.env` |
+| `gemini-3.5-flash` | LLM that writes and checks the questions |
+| `gemini-embedding-2` (768 dimensions) | Embeddings for chunks and search queries |
 
 ## 2. Setup
 
-```bash
+### Windows (10 / 11, PowerShell)
+
+```powershell
 git clone https://github.com/gurp1990/RagBasedWebApplication.git
 cd RagBasedWebApplication
+git switch gemini_online_implementation
 
-# Windows
 python -m venv .venv
 .venv\Scripts\activate
-# Linux / macOS
-python3 -m venv .venv
-source .venv/bin/activate
-
 pip install -r requirements.txt
 
-# models (skip if already pulled while installing Ollama)
-ollama pull gemma3:4b
-ollama pull nomic-embed-text
+copy .env.example .env
+notepad .env          # set GOOGLE_API_KEY=<your key>, save and close
+```
 
-# optional: change settings
-copy .env.example .env      # Windows   (cp .env.example .env on macOS/Linux)
+### Linux (Ubuntu, Debian, Fedora, …)
+
+```bash
+# Ubuntu/Debian: install Python and venv if needed
+sudo apt install python3 python3-venv python3-pip
+
+git clone https://github.com/gurp1990/RagBasedWebApplication.git
+cd RagBasedWebApplication
+git switch gemini_online_implementation
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+cp .env.example .env
+nano .env             # set GOOGLE_API_KEY=<your key>, save with Ctrl+O, exit with Ctrl+X
+```
+
+### Check that the key works
+
+The command lists the Gemini models your key can use. An error message means the key is
+wrong or not active yet.
+
+```powershell
+# Windows (PowerShell)
+curl.exe -H "x-goog-api-key: <your key>" https://generativelanguage.googleapis.com/v1beta/models
+```
+
+```bash
+# Linux
+curl -H "x-goog-api-key: <your key>" https://generativelanguage.googleapis.com/v1beta/models
 ```
 
 ### Dependencies (`requirements.txt`)
@@ -144,7 +114,7 @@ copy .env.example .env      # Windows   (cp .env.example .env on macOS/Linux)
 |---|---|
 | `pypdf` | PDF text extraction |
 | `langchain-core`, `langchain-text-splitters` | Documents, prompt templates, structured output, chunking |
-| `langchain-ollama` | Ollama chat model + embeddings |
+| `langchain-google-genai` | Gemini chat model + Gemini embeddings |
 | `langchain-chroma`, `chromadb` | Vector store |
 | `fastapi`, `uvicorn`, `jinja2`, `python-multipart` | Web application and HTML templates |
 | `pydantic`, `python-dotenv` | Output schemas, configuration |
@@ -152,30 +122,37 @@ copy .env.example .env      # Windows   (cp .env.example .env on macOS/Linux)
 ## 3. Configuration
 
 All settings have defaults and can be overridden in `.env` (see [.env.example](.env.example)).
+Only `GOOGLE_API_KEY` is required.
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `LLM_MODEL` | `Ollama` | LLM provider (label shown in the UI) |
-| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server |
-| `OLLAMA_LLM_MODEL` | `gemma3:4b` | Chat model for question generation (e.g. `gemma3:12b`, `llama3.2:3b`) |
-| `OLLAMA_EMBEDDING_MODEL` | `nomic-embed-text` | Embedding model |
+| `GOOGLE_API_KEY` | *(none, required)* | Your Gemini API key |
+| `LLM_MODEL` | `Gemini` | LLM provider (label shown in the UI) |
+| `GEMINI_LLM_MODEL` | `gemini-3.5-flash` | Chat model for question generation (e.g. `gemini-3.5-flash-lite` for faster, cheaper runs) |
+| `GEMINI_EMBEDDING_MODEL` | `gemini-embedding-2` | Embedding model |
+| `EMBEDDING_DIMENSIONS` | `768` | Vector size: `768`, `1536` or `3072` |
 | `LLM_TEMPERATURE` | `0.2` | Lower = more deterministic |
-| `EMBED_QUERY_PREFIX` / `EMBED_DOCUMENT_PREFIX` | `search_query: ` / `search_document: ` | Task prefixes required by `nomic-embed-text`; set both empty for other embedding models |
+| `LLM_MAX_RETRIES` | `6` | Retries with back-off when the API rate limit is hit |
 | `CHUNK_SIZE` / `CHUNK_OVERLAP` | `500` / `80` | Chunk length and overlap in characters |
-| `CHROMA_DIR` | `chroma_db` | ChromaDB persistence folder |
+| `CHROMA_DIR` | `chroma_db_gemini` | ChromaDB persistence folder (separate from the Ollama database on `main`) |
 | `DOCUMENTS_COLLECTION` / `QUESTIONS_COLLECTION` | `documents` / `questions` | ChromaDB collection names |
 | `SEARCH_TOP_K` | `4` | Maximum number of search results |
-| `MIN_RELEVANCE_SCORE` | `0.6` | Passages scoring below this are dropped; if none remain, the page shows "Not found in the document" |
+| `MIN_RELEVANCE_SCORE` | `0.59` | Passages scoring below this are dropped; if none remain, the page shows "Not found in the document" |
 | `NUM_QUESTIONS` | `5` | Questions generated per document |
 | `SAMPLES_DIR` / `UPLOAD_DIR` | `samples` / `uploads` | PDF folders |
 
-> If you change `OLLAMA_EMBEDDING_MODEL`, the embedding prefixes or the chunk settings,
-> delete `chroma_db/` and ingest again so all vectors are created the same way.
+> If you change `GEMINI_EMBEDDING_MODEL`, `EMBEDDING_DIMENSIONS` or the chunk settings,
+> delete `chroma_db_gemini/` and ingest again so all vectors are created the same way.
 
-**How the relevance threshold was chosen:** with the prefixes, the best score for 10
-questions about the sample PDF was 0.64–0.76, and for 10 unrelated questions ("How do I
-bake a cake?", "capital of India", …) it was 0.41–0.56. The default of 0.6 sits in that gap.
-Raise it for stricter results; lower it if relevant passages are being missed.
+Gemini embeds chunks with task type `RETRIEVAL_DOCUMENT` and queries with `RETRIEVAL_QUERY`,
+so search queries and passages are compared the way the model was trained for.
+
+**How the relevance threshold was chosen:** I compared the embedding models on 10 questions
+about the sample PDF and 10 unrelated questions ("How do I bake a cake?", "capital of India",
+…). With `gemini-embedding-2` at 768 dimensions, the best score was 0.61–0.77 for related
+questions and 0.48–0.57 for unrelated ones. That was the clearest gap of the models tested,
+and the default of 0.59 sits inside it. Raise it for stricter results; lower it if relevant
+passages are being missed.
 
 ## 4. Running
 
@@ -192,7 +169,7 @@ automatically.
 |---|---|
 | `/` Documents | Lists stored PDFs (chunks / questions), upload a new PDF, re-ingest samples |
 | `/search` Semantic Search | Search box plus clickable sample queries; shows passages with page number and relevance score |
-| `/questions` Questions | Generate or regenerate 5 MCQs (about 1–3 minutes with `gemma3:4b`). Click an option to check it, or use "Show all answers" to see the explanation, the quoted source sentence and the source passage |
+| `/questions` Questions | Generate or regenerate 5 MCQs (about 1–2 minutes with `gemini-3.5-flash`). Click an option to check it, or use "Show all answers" to see the explanation, the quoted source sentence and the source passage |
 
 JSON API: `GET /api/search?q=...&top_k=4`, `GET /api/questions?source=computer_basics.pdf`.
 Interactive API docs: <http://localhost:8000/docs>.
@@ -214,7 +191,7 @@ python -m app.cli export                     # write sample_outputs/*.html and *
 
 ## 5. Sample outputs
 
-Generated from `samples/computer_basics.pdf` and committed in [`sample_outputs/`](sample_outputs/).
+Generated with Gemini from `samples/computer_basics.pdf` and committed in [`sample_outputs/`](sample_outputs/).
 They are static, self-contained HTML pages that open directly in a browser:
 
 * [`sample_outputs/semantic_search.html`](sample_outputs/semantic_search.html): 5 demo queries with their matching passages and pages, plus 1 off-topic query that correctly returns "Not found in the document" ([JSON](sample_outputs/semantic_search.json))
@@ -225,25 +202,24 @@ They are static, self-contained HTML pages that open directly in a browser:
 
 | Query | Results | Passage with the answer (page, score) |
 |---|---|---|
-| What is the brain of the computer? | 4 | #1: "CPU (Central Processing Unit): the 'brain' of the computer…" (p. 1, 0.76) |
-| Difference between RAM and ROM | 3 | #1: "Memory: RAM is temporary (volatile) memory … ROM is permanent…" (p. 1, 0.75) |
-| Which devices are used for output? | 3 | #1: "… Input Devices / Output Devices / Keyboard, Mouse / Monitor…" (p. 1, 0.64) |
-| How many bytes are in a kilobyte? | 1 | #1: "Units of Memory … 1024 Bytes = 1 Kilobyte…" (p. 1, 0.76) |
-| What technology did the second generation use? | 4 | #2: "… Second (1956–63): transistors…" (p. 1, 0.67) |
+| What is the brain of the computer? | 4 | #1: "CPU (Central Processing Unit): the 'brain' of the computer…" (p. 1, 0.77) |
+| Difference between RAM and ROM | 4 | #1: "Memory: RAM is temporary (volatile) memory … ROM is permanent…" (p. 1, 0.74) |
+| Which devices are used for output? | 4 | #1: "… Input Devices / Output Devices / Keyboard, Mouse / Monitor…" (p. 1, 0.70) |
+| How many bytes are in a kilobyte? | 4 | #1: "Units of Memory … 1024 Bytes = 1 Kilobyte…" (p. 1, 0.69) |
+| What technology did the second generation use? | 4 | #1: "… Second (1956–63): transistors…" (p. 1, 0.68) |
 | How do I bake a chocolate cake? *(off-topic)* | 0 | **Not found in the document** |
 
 **Generated question (example)**
 
 ```
-Q2. What characteristic best describes RAM memory?   (page 1)
-    A) start-up instructions
-    B) permanent (non-volatile)
-    C) solid state drive
-  * D) temporary (volatile)
-  Explanation: The text explicitly states that RAM is 'temporary (volatile) memory,'
-  meaning it loses data when power is turned off. The other options describe ROM or storage.
-  Source: "Memory: RAM is temporary (volatile) memory that loses data when power is off.
-           ROM is permanent (non-volatile) memory that stores start-up instructions."
+Q2. Which type of memory is permanent and stores start-up instructions?   (page 1)
+  * A) ROM
+    B) RAM
+    C) HDD
+    D) Motherboard
+  Explanation: ROM is permanent (non-volatile) memory that stores start-up instructions,
+  unlike RAM which is temporary.
+  Source: "ROM is permanent (non-volatile) memory that stores start-up instructions."
 ```
 
 LLM output varies from run to run. Regenerating gives different (still verified) questions.
@@ -254,7 +230,7 @@ LLM output varies from run to run. Regenerating gives different (still verified)
 RagBasedWebApplication/
 ├── app/
 │   ├── config.py               settings (.env)
-│   ├── llm.py                  Ollama LLM + embeddings
+│   ├── llm.py                  Gemini LLM + embeddings
 │   ├── document_processor.py   PDF -> cleaned pages -> chunks (+ page metadata)
 │   ├── vector_store.py         ChromaDB collections: documents, questions
 │   ├── ingestion.py            PDF -> ChromaDB pipeline
@@ -265,25 +241,33 @@ RagBasedWebApplication/
 │   ├── cli.py                  command-line interface
 │   ├── templates/              Jinja2 HTML pages
 │   └── static/style.css
+├── docs/workflow.html          diagrams (RAG, workflows, ER diagram)
 ├── samples/computer_basics.pdf
 ├── sample_outputs/             static HTML/JSON demo output
 ├── ARCHITECTURE.md
 ├── requirements.txt
-└── .env.example
+└── .env.example                copy to .env and add GOOGLE_API_KEY
 ```
 
 ## 7. Customising
 
-* **Another model:** set `OLLAMA_LLM_MODEL=gemma3:12b` in `.env`. A larger model gives better
-  questions but is slower.
+* **Another model:** set `GEMINI_LLM_MODEL` in `.env`, for example `gemini-3.5-flash-lite`
+  for faster and cheaper runs. To see which models your key can use, run the curl command
+  under "Check that the key works".
 * **Another provider:** change the two functions in `app/llm.py`.
 * **Better or different questions:** edit `app/prompts.py`.
 * **Demo queries:** edit `SAMPLE_QUERIES` in `app/semantic_search.py`.
 
 ## Troubleshooting
 
-* `Connection refused` / ingestion errors: start Ollama (`ollama serve`) and check that the
-  models are pulled (`ollama list`).
-* Fewer than 5 questions: some drafts failed verification on every attempt. Click
-  *Regenerate*, or use a larger model.
-* Tables in PDFs are extracted as plain lines (a `pypdf` limitation), so column structure is lost.
+| Problem | Fix |
+|---|---|
+| `GOOGLE_API_KEY is not set` | Create `.env` from `.env.example` and add your key |
+| `400 API key not valid` / `403 PERMISSION_DENIED` | Check the key in `.env`, with no quotes or spaces, or create a new key in AI Studio |
+| `404 NOT_FOUND … model … is no longer available` | Google retired that model. Set `GEMINI_LLM_MODEL` to a current one from the model list |
+| `429 RESOURCE_EXHAUSTED` | The free-tier rate limit was hit. The app retries automatically (`LLM_MAX_RETRIES`). If it still fails, wait a minute and click *Regenerate* |
+| Search finds nothing after changing the embedding model | Delete `chroma_db_gemini/` and ingest again |
+| Fewer than 5 questions | Some drafts failed verification on every attempt. Click *Regenerate* |
+| Connection errors | Check your internet connection, and any proxy or firewall in front of `generativelanguage.googleapis.com` |
+
+Tables in PDFs are extracted as plain lines (a `pypdf` limitation), so column structure is lost.

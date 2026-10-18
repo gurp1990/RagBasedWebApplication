@@ -2,83 +2,83 @@
   "source": "computer_basics.pdf",
   "questions": [
     {
-      "source_quote": "Charles Babbage is known as the Father of the Computer for designing the Analytical Engine in the 1830s.",
+      "explanation": "Charles Babbage is known as the Father of the Computer because he designed the Analytical Engine in the 1830s.",
       "page": 1,
-      "question": "According to the text, who is considered the ‘Father of the Computer’?",
-      "source_text": "Computer Basics\nA computer is an electronic device that accepts data (input), processes it according to instructions (programs), stores it, and produces results (output). Charles Babbage is known as the Father of the\nComputer for designing the Analytical Engine in the 1830s.\n1. Main Parts of a Computer\n• CPU (Central Processing Unit): the \"brain\" of the computer. It has the ALU (Arithmetic Logic Unit), which does calculations, and the CU (Control Unit), which directs operations.",
-      "source": "computer_basics.pdf",
-      "correct_answer": "Charles Babbage",
+      "question": "Who is known as the Father of the Computer?",
       "number": 1,
-      "explanation": "The text explicitly states that Charles Babbage is recognized as the ‘Father of the Computer’ due to his design of the Analytical Engine. The other options are components *within* a computer, not the originator of the concept.",
+      "source_quote": "Charles Babbage is known as the Father of the Computer for designing the Analytical Engine in the 1830s.",
+      "correct_answer": "Charles Babbage",
+      "source": "computer_basics.pdf",
+      "source_text": "Computer Basics\nA computer is an electronic device that accepts data (input), processes it according to instructions (programs), stores it, and produces results (output). Charles Babbage is known as the Father of the\nComputer for designing the Analytical Engine in the 1830s.\n1. Main Parts of a Computer\n• CPU (Central Processing Unit): the \"brain\" of the computer. It has the ALU (Arithmetic Logic Unit), which does calculations, and the CU (Control Unit), which directs operations.",
       "options": [
-        "Control Unit",
-        "ALU",
-        "CPU",
+        "The Control Unit",
+        "The ALU",
+        "The Analytical Engine",
         "Charles Babbage"
       ]
     },
     {
-      "correct_answer": "temporary (volatile)",
-      "source": "computer_basics.pdf",
-      "explanation": "The text explicitly states that RAM is ‘temporary (volatile) memory,’ meaning it loses data when power is turned off. The other options describe ROM or storage devices.",
-      "source_quote": "Memory: RAM is temporary (volatile) memory that loses data when power is off. ROM is permanent (non-volatile) memory that stores start-up instructions.",
-      "page": 1,
-      "source_text": "• Memory: RAM is temporary (volatile) memory that loses data when power is off. ROM is permanent (non-volatile) memory that stores start-up instructions.\n• Storage: HDD (hard disk drive), SSD (solid state drive, faster), and pen drives keep data permanently.\n• Motherboard: the main circuit board that connects all components.\n2. Input and Output Devices\nInput Devices\nOutput Devices\nKeyboard, Mouse\nMonitor\nScanner, Microphone\nPrinter, Speakers\nWebcam, Joystick\nProjector, Headphones",
+      "source_quote": "ROM is permanent (non-volatile) memory that stores start-up instructions.",
+      "question": "Which type of memory is permanent and stores start-up instructions?",
       "number": 2,
-      "question": "What characteristic best describes RAM memory?",
+      "correct_answer": "ROM",
+      "page": 1,
+      "explanation": "ROM is permanent (non-volatile) memory that stores start-up instructions, unlike RAM which is temporary.",
+      "source_text": "• Memory: RAM is temporary (volatile) memory that loses data when power is off. ROM is permanent (non-volatile) memory that stores start-up instructions.\n• Storage: HDD (hard disk drive), SSD (solid state drive, faster), and pen drives keep data permanently.\n• Motherboard: the main circuit board that connects all components.\n2. Input and Output Devices\nInput Devices\nOutput Devices\nKeyboard, Mouse\nMonitor\nScanner, Microphone\nPrinter, Speakers\nWebcam, Joystick\nProjector, Headphones",
+      "source": "computer_basics.pdf",
       "options": [
-        "start-up instructions",
-        "permanent (non-volatile)",
-        "solid state drive",
-        "temporary (volatile)"
+        "ROM",
+        "RAM",
+        "HDD",
+        "Motherboard"
       ]
     },
     {
-      "correct_answer": "the physical part of a computer that we can touch",
       "source": "computer_basics.pdf",
-      "number": 3,
-      "source_quote": "Hardware is the physical part of a computer that we can touch.",
+      "explanation": "The text defines hardware as the physical part of a computer that we can touch.",
+      "correct_answer": "The physical part of a computer that we can touch",
       "source_text": "Scanner, Microphone\nPrinter, Speakers\nWebcam, Joystick\nProjector, Headphones\n3. Hardware and Software\nHardware is the physical part of a computer that we can touch. Software is a set of programs that tells the hardware what to do. Software is of two types:\n• System software: runs the computer, e.g. Operating Systems such as Windows, Linux, macOS and\nAndroid.\n• Application software: does specific tasks, e.g. MS Word, web browsers, games, and calculators.\n4. Units of Memory",
       "page": 1,
       "question": "According to the text, what is hardware?",
-      "explanation": "The text explicitly states that hardware is the part of a computer that can be physically touched. The other options describe software or specific applications.",
+      "number": 3,
+      "source_quote": "Hardware is the physical part of a computer that we can touch.",
       "options": [
-        "MS Word",
-        "Operating Systems such as Windows, Linux, macOS and Android",
-        "a set of programs",
-        "the physical part of a computer that we can touch"
+        "A set of programs that tells the hardware what to do",
+        "An application software that does specific tasks",
+        "The physical part of a computer that we can touch",
+        "Software that runs operating systems like Windows"
       ]
     },
     {
-      "source": "computer_basics.pdf",
-      "question": "According to the text, what is the relationship between 8 bits and 1 Byte?",
-      "source_quote": "8 bits = 1 Byte; 1024 Bytes = 1 Kilobyte (KB); 1024 KB = 1 Megabyte (MB); 1024 MB = 1 Gigabyte (GB); 1024 GB = 1 Terabyte (TB).",
-      "correct_answer": "8 bits = 1 Byte",
       "number": 4,
-      "explanation": "The text explicitly states that 8 bits equal 1 Byte. The other options represent different units of memory or generations of computers, as described in the document.",
-      "source_text": "4. Units of Memory\nThe smallest unit is a bit (0 or 1). 8 bits = 1 Byte; 1024 Bytes = 1 Kilobyte (KB); 1024 KB = 1 Megabyte (MB); 1024 MB = 1 Gigabyte (GB); 1024 GB = 1 Terabyte (TB).\n5. Generations of Computers\n• First (1940–56): vacuum tubes\n• Second (1956–63): transistors\n• Third (1964–71): integrated circuits (ICs)\n• Fourth (1971–present): microprocessors\n• Fifth (present and beyond): artificial intelligence (AI)\n6. Important Terms",
+      "correct_answer": "A bit (0 or 1)",
+      "question": "What is the smallest unit of memory according to the text?",
+      "source_quote": "The smallest unit is a bit (0 or 1).",
       "page": 1,
+      "source_text": "4. Units of Memory\nThe smallest unit is a bit (0 or 1). 8 bits = 1 Byte; 1024 Bytes = 1 Kilobyte (KB); 1024 KB = 1 Megabyte (MB); 1024 MB = 1 Gigabyte (GB); 1024 GB = 1 Terabyte (TB).\n5. Generations of Computers\n• First (1940–56): vacuum tubes\n• Second (1956–63): transistors\n• Third (1964–71): integrated circuits (ICs)\n• Fourth (1971–present): microprocessors\n• Fifth (present and beyond): artificial intelligence (AI)\n6. Important Terms",
+      "explanation": "The context states that the smallest unit of memory is a bit (0 or 1).",
+      "source": "computer_basics.pdf",
       "options": [
-        "Artificial intelligence is a characteristic of the Fifth generation of computers.",
-        "8 bits = 1 Byte",
-        "1024 Bytes = 1 Kilobyte (KB)",
-        "Transistors were used in the Second generation of computers."
+        "1 Byte",
+        "1 Kilobyte (KB)",
+        "A bit (0 or 1)",
+        "1 Megabyte (MB)"
       ]
     },
     {
-      "question": "According to the text, how do computers primarily process information?",
-      "explanation": "The text explicitly states that computers ‘understand only two digits, 0 and 1’ – this refers to the binary system, which is the fundamental way computers represent and process data.",
-      "source_quote": "Binary system: computers understand only two digits, 0 and 1.",
-      "source": "computer_basics.pdf",
-      "correct_answer": "0 and 1",
-      "source_text": "• Fifth (present and beyond): artificial intelligence (AI)\n6. Important Terms\n• Internet: a global network connecting millions of computers.\n• Virus: a harmful program that can damage data; antivirus software protects against it.\n• Binary system: computers understand only two digits, 0 and 1.",
-      "page": 1,
       "number": 5,
+      "question": "What is defined in the text as a global network connecting millions of computers?",
+      "page": 1,
+      "correct_answer": "Internet",
+      "source": "computer_basics.pdf",
+      "source_quote": "• Internet: a global network connecting millions of computers.",
+      "source_text": "• Fifth (present and beyond): artificial intelligence (AI)\n6. Important Terms\n• Internet: a global network connecting millions of computers.\n• Virus: a harmful program that can damage data; antivirus software protects against it.\n• Binary system: computers understand only two digits, 0 and 1.",
+      "explanation": "According to the text, the Internet is defined as a global network connecting millions of computers.",
       "options": [
-        "0 and 1",
-        "millions of computers",
-        "a global network",
-        "a harmful program"
+        "Virus",
+        "Antivirus software",
+        "Internet",
+        "Binary system"
       ]
     }
   ]

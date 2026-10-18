@@ -6,7 +6,7 @@ __pycache__/
 venv/
 
 # Local data (re-created by ingestion)
-chroma_db/
+chroma_db*/
 uploads/
 
 # Secrets / local config
