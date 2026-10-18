@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Questions · RAG PDF Assistant</title>
+  
+  <style>/* ---------- theme ---------- */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --text: #1c2430;
+  --muted: #5f6b7a;
+  --border: #dfe3e8;
+  --accent: #2557d6;
+  --accent-soft: #e8eefc;
+  --ok: #17803d;
+  --ok-soft: #e5f5ea;
+  --bad: #c0362c;
+  --bad-soft: #fbe9e7;
+  --radius: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12161c;
+    --surface: #1b2129;
+    --text: #e4e8ee;
+    --muted: #96a1b0;
+    --border: #2d3540;
+    --accent: #7ea2ff;
+    --accent-soft: #24304a;
+    --ok: #5cc98a;
+    --ok-soft: #1c3326;
+    --bad: #f08479;
+    --bad-soft: #3a2120;
+  }
+}
+
+/* ---------- base ---------- */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+a { color: var(--accent); }
+code { font-size: 0.9em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+h1 { font-size: 1.7rem; margin: 28px 0 6px; }
+h2 { font-size: 1.1rem; margin: 0 0 12px; }
+.wrap { max-width: 900px; margin: 0 auto; padding: 0 16px; }
+.lead { color: var(--muted); margin: 0 0 22px; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+
+/* ---------- header / footer ---------- */
+.topbar { background: var(--surface); border-bottom: 1px solid var(--border); }
+.topbar-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; min-height: 56px; }
+.brand { font-weight: 700; color: var(--text); text-decoration: none; }
+nav { display: flex; flex-wrap: wrap; gap: 4px; }
+nav a { color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: 6px; }
+nav a.active, nav a:hover { color: var(--accent); background: var(--accent-soft); }
+.footer { color: var(--muted); font-size: 0.85rem; padding-top: 24px; padding-bottom: 32px; }
+
+/* ---------- building blocks ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.flash { padding: 10px 14px; border-radius: 8px; }
+.flash.ok { background: var(--ok-soft); color: var(--ok); }
+.flash.err { background: var(--bad-soft); color: var(--bad); }
+.notice { background: var(--accent-soft); padding: 10px 14px; border-radius: 8px; margin-top: 20px; }
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+button.secondary { background: transparent; color: var(--accent); }
+button:disabled { opacity: 0.6; cursor: wait; }
+input[type=search], select {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+input[type=file] { margin-bottom: 12px; max-width: 100%; }
+
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+.table th { color: var(--muted); font-weight: 600; font-size: 0.85rem; }
+.row-actions a { margin-right: 12px; }
+.config { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+.config dt { color: var(--muted); }
+.config dd { margin: 0; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+form.inline { display: inline-flex; gap: 8px; margin: 0; }
+
+/* ---------- search ---------- */
+.search-form { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.search-form input[type=search] { flex: 1 1 260px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 24px; }
+.chip {
+  font-size: 0.85rem;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.search-block { margin-bottom: 28px; }
+.query { font-size: 1.15rem; margin: 8px 0 12px; }
+.result-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 8px; }
+.rank { font-weight: 700; color: var(--muted); }
+.badge { background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: 0.8rem; padding: 2px 8px; border-radius: 6px; }
+.score { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { width: 80px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--accent); }
+.passage { white-space: pre-line; margin: 0; }
+
+/* ---------- questions ---------- */
+.question h2 { font-size: 1.05rem; line-height: 1.45; }
+.qnum { color: var(--accent); margin-right: 4px; }
+.options { list-style: none; padding: 0; margin: 0 0 4px; display: grid; gap: 8px; }
+.option {
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.option:hover { border-color: var(--accent); }
+.letter { font-weight: 700; color: var(--muted); }
+.option.is-correct { border-color: var(--ok); background: var(--ok-soft); }
+.option.picked-wrong { border-color: var(--bad); background: var(--bad-soft); }
+.answer { display: none; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); }
+.answer p { margin: 0 0 8px; }
+.question.revealed .answer { display: block; }
+blockquote { margin: 0 0 10px; padding: 6px 12px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 6px 6px 0; }
+details summary { cursor: pointer; color: var(--accent); font-size: 0.9rem; }
+details .passage { margin-top: 8px; padding: 10px 12px; background: var(--bg); border-radius: 8px; font-size: 0.9rem; }
+</style>
+  
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="index.html">RAG PDF Assistant</a>
+      <nav>
+        <a href="index.html" class="">Documents</a>
+        <a href="semantic_search.html" class="">Semantic Search</a>
+        <a href="questions.html" class="active">Questions</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    
+    <p class="notice">Static sample output, generated 2026-10-18 15:51 with
+      <code>gemma3:4b</code>. Run the web app for live results.</p>
+    
+    
+    
+
+    
+<h1>Multiple-choice questions</h1>
+<p class="lead">Generated by the LLM from passages of the document, then fact-checked against
+  the same passage before being stored in ChromaDB. Click an option to check your answer.</p>
+
+
+
+
+<div class="toolbar">
+  <span class="muted">5 questions from <strong>computer_basics.pdf</strong></span>
+  <button type="button" class="secondary" id="toggle-answers">Show all answers</button>
+</div>
+
+
+<article class="card question" data-answer="Charles Babbage">
+  <h2><span class="qnum">Q1</span> According to the text, who is considered the ‘Father of the Computer’?</h2>
+  <ol class="options">
+    
+    <li><button type="button" class="option" data-option="Control Unit">
+      <span class="letter">A</span> Control Unit
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="ALU">
+      <span class="letter">B</span> ALU
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="CPU">
+      <span class="letter">C</span> CPU
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="Charles Babbage">
+      <span class="letter">D</span> Charles Babbage
+    </button></li>
+    
+  </ol>
+  <div class="answer">
+    <p><strong>Correct answer:</strong> Charles Babbage</p>
+    <p><strong>Explanation:</strong> The text explicitly states that Charles Babbage is recognized as the ‘Father of the Computer’ due to his design of the Analytical Engine. The other options are components *within* a computer, not the originator of the concept.</p>
+    <blockquote>“Charles Babbage is known as the Father of the Computer for designing the Analytical Engine in the 1830s.” <span class="muted small">— page 1</span></blockquote>
+    <details>
+      <summary>Source passage · page 1</summary>
+      <p class="passage">Computer Basics
+A computer is an electronic device that accepts data (input), processes it according to instructions (programs), stores it, and produces results (output). Charles Babbage is known as the Father of the
+Computer for designing the Analytical Engine in the 1830s.
+1. Main Parts of a Computer
+• CPU (Central Processing Unit): the &#34;brain&#34; of the computer. It has the ALU (Arithmetic Logic Unit), which does calculations, and the CU (Control Unit), which directs operations.</p>
+    </details>
+  </div>
+</article>
+
+<article class="card question" data-answer="temporary (volatile)">
+  <h2><span class="qnum">Q2</span> What characteristic best describes RAM memory?</h2>
+  <ol class="options">
+    
+    <li><button type="button" class="option" data-option="start-up instructions">
+      <span class="letter">A</span> start-up instructions
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="permanent (non-volatile)">
+      <span class="letter">B</span> permanent (non-volatile)
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="solid state drive">
+      <span class="letter">C</span> solid state drive
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="temporary (volatile)">
+      <span class="letter">D</span> temporary (volatile)
+    </button></li>
+    
+  </ol>
+  <div class="answer">
+    <p><strong>Correct answer:</strong> temporary (volatile)</p>
+    <p><strong>Explanation:</strong> The text explicitly states that RAM is ‘temporary (volatile) memory,’ meaning it loses data when power is turned off. The other options describe ROM or storage devices.</p>
+    <blockquote>“Memory: RAM is temporary (volatile) memory that loses data when power is off. ROM is permanent (non-volatile) memory that stores start-up instructions.” <span class="muted small">— page 1</span></blockquote>
+    <details>
+      <summary>Source passage · page 1</summary>
+      <p class="passage">• Memory: RAM is temporary (volatile) memory that loses data when power is off. ROM is permanent (non-volatile) memory that stores start-up instructions.
+• Storage: HDD (hard disk drive), SSD (solid state drive, faster), and pen drives keep data permanently.
+• Motherboard: the main circuit board that connects all components.
+2. Input and Output Devices
+Input Devices
+Output Devices
+Keyboard, Mouse
+Monitor
+Scanner, Microphone
+Printer, Speakers
+Webcam, Joystick
+Projector, Headphones</p>
+    </details>
+  </div>
+</article>
+
+<article class="card question" data-answer="the physical part of a computer that we can touch">
+  <h2><span class="qnum">Q3</span> According to the text, what is hardware?</h2>
+  <ol class="options">
+    
+    <li><button type="button" class="option" data-option="MS Word">
+      <span class="letter">A</span> MS Word
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="Operating Systems such as Windows, Linux, macOS and Android">
+      <span class="letter">B</span> Operating Systems such as Windows, Linux, macOS and Android
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="a set of programs">
+      <span class="letter">C</span> a set of programs
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="the physical part of a computer that we can touch">
+      <span class="letter">D</span> the physical part of a computer that we can touch
+    </button></li>
+    
+  </ol>
+  <div class="answer">
+    <p><strong>Correct answer:</strong> the physical part of a computer that we can touch</p>
+    <p><strong>Explanation:</strong> The text explicitly states that hardware is the part of a computer that can be physically touched. The other options describe software or specific applications.</p>
+    <blockquote>“Hardware is the physical part of a computer that we can touch.” <span class="muted small">— page 1</span></blockquote>
+    <details>
+      <summary>Source passage · page 1</summary>
+      <p class="passage">Scanner, Microphone
+Printer, Speakers
+Webcam, Joystick
+Projector, Headphones
+3. Hardware and Software
+Hardware is the physical part of a computer that we can touch. Software is a set of programs that tells the hardware what to do. Software is of two types:
+• System software: runs the computer, e.g. Operating Systems such as Windows, Linux, macOS and
+Android.
+• Application software: does specific tasks, e.g. MS Word, web browsers, games, and calculators.
+4. Units of Memory</p>
+    </details>
+  </div>
+</article>
+
+<article class="card question" data-answer="8 bits = 1 Byte">
+  <h2><span class="qnum">Q4</span> According to the text, what is the relationship between 8 bits and 1 Byte?</h2>
+  <ol class="options">
+    
+    <li><button type="button" class="option" data-option="Artificial intelligence is a characteristic of the Fifth generation of computers.">
+      <span class="letter">A</span> Artificial intelligence is a characteristic of the Fifth generation of computers.
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="8 bits = 1 Byte">
+      <span class="letter">B</span> 8 bits = 1 Byte
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="1024 Bytes = 1 Kilobyte (KB)">
+      <span class="letter">C</span> 1024 Bytes = 1 Kilobyte (KB)
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="Transistors were used in the Second generation of computers.">
+      <span class="letter">D</span> Transistors were used in the Second generation of computers.
+    </button></li>
+    
+  </ol>
+  <div class="answer">
+    <p><strong>Correct answer:</strong> 8 bits = 1 Byte</p>
+    <p><strong>Explanation:</strong> The text explicitly states that 8 bits equal 1 Byte. The other options represent different units of memory or generations of computers, as described in the document.</p>
+    <blockquote>“8 bits = 1 Byte; 1024 Bytes = 1 Kilobyte (KB); 1024 KB = 1 Megabyte (MB); 1024 MB = 1 Gigabyte (GB); 1024 GB = 1 Terabyte (TB).” <span class="muted small">— page 1</span></blockquote>
+    <details>
+      <summary>Source passage · page 1</summary>
+      <p class="passage">4. Units of Memory
+The smallest unit is a bit (0 or 1). 8 bits = 1 Byte; 1024 Bytes = 1 Kilobyte (KB); 1024 KB = 1 Megabyte (MB); 1024 MB = 1 Gigabyte (GB); 1024 GB = 1 Terabyte (TB).
+5. Generations of Computers
+• First (1940–56): vacuum tubes
+• Second (1956–63): transistors
+• Third (1964–71): integrated circuits (ICs)
+• Fourth (1971–present): microprocessors
+• Fifth (present and beyond): artificial intelligence (AI)
+6. Important Terms</p>
+    </details>
+  </div>
+</article>
+
+<article class="card question" data-answer="0 and 1">
+  <h2><span class="qnum">Q5</span> According to the text, how do computers primarily process information?</h2>
+  <ol class="options">
+    
+    <li><button type="button" class="option" data-option="0 and 1">
+      <span class="letter">A</span> 0 and 1
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="millions of computers">
+      <span class="letter">B</span> millions of computers
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="a global network">
+      <span class="letter">C</span> a global network
+    </button></li>
+    
+    <li><button type="button" class="option" data-option="a harmful program">
+      <span class="letter">D</span> a harmful program
+    </button></li>
+    
+  </ol>
+  <div class="answer">
+    <p><strong>Correct answer:</strong> 0 and 1</p>
+    <p><strong>Explanation:</strong> The text explicitly states that computers ‘understand only two digits, 0 and 1’ – this refers to the binary system, which is the fundamental way computers represent and process data.</p>
+    <blockquote>“Binary system: computers understand only two digits, 0 and 1.” <span class="muted small">— page 1</span></blockquote>
+    <details>
+      <summary>Source passage · page 1</summary>
+      <p class="passage">• Fifth (present and beyond): artificial intelligence (AI)
+6. Important Terms
+• Internet: a global network connecting millions of computers.
+• Virus: a harmful program that can damage data; antivirus software protects against it.
+• Binary system: computers understand only two digits, 0 and 1.</p>
+    </details>
+  </div>
+</article>
+
+
+
+  </main>
+
+  <footer class="wrap footer">Python · LangChain · ChromaDB · Ollama</footer>
+
+  <script>
+    // Show a "working" state on forms that call the LLM (they can take a minute).
+    document.querySelectorAll("form[data-busy]").forEach(function (form) {
+      form.addEventListener("submit", function () {
+        var button = form.querySelector("button");
+        button.disabled = true;
+        button.textContent = form.dataset.busy;
+      });
+    });
+  </script>
+  
+<script>
+  // Quiz behaviour: pick an option -> mark it right/wrong and reveal the answer.
+  document.querySelectorAll(".question").forEach(function (card) {
+    card.querySelectorAll(".option").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var correct = button.dataset.option === card.dataset.answer;
+        card.querySelectorAll(".option").forEach(function (b) {
+          b.classList.remove("picked-right", "picked-wrong");
+          if (b.dataset.option === card.dataset.answer) b.classList.add("is-correct");
+        });
+        button.classList.add(correct ? "picked-right" : "picked-wrong");
+        card.classList.add("revealed");
+      });
+    });
+  });
+
+  var toggle = document.getElementById("toggle-answers");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var show = toggle.textContent.indexOf("Show") === 0;
+      document.querySelectorAll(".question").forEach(function (card) {
+        card.classList.toggle("revealed", show);
+        card.querySelectorAll(".option").forEach(function (b) {
+          b.classList.toggle("is-correct", show && b.dataset.option === card.dataset.answer);
+          if (!show) b.classList.remove("picked-right", "picked-wrong");
+        });
+      });
+      toggle.textContent = show ? "Hide answers" : "Show all answers";
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>{% block title %}RAG PDF Assistant{% endblock %}</title>
+  {% if inline_css %}
+  <style>{{ inline_css | safe }}</style>
+  {% else %}
+  <link rel="stylesheet" href="/static/style.css">
+  {% endif %}
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="{{ links.home }}">RAG PDF Assistant</a>
+      <nav>
+        <a href="{{ links.home }}" class="{{ 'active' if page == 'home' }}">Documents</a>
+        <a href="{{ links.search }}" class="{{ 'active' if page == 'search' }}">Semantic Search</a>
+        <a href="{{ links.questions }}" class="{{ 'active' if page == 'questions' }}">Questions</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    {% if static_export %}
+    <p class="notice">Static sample output, generated {{ generated_at }} with
+      <code>{{ model }}</code>. Run the web app for live results.</p>
+    {% endif %}
+    {% if message %}<p class="flash ok">{{ message }}</p>{% endif %}
+    {% if error %}<p class="flash err">{{ error }}</p>{% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="wrap footer">Python · LangChain · ChromaDB · Ollama</footer>
+
+  <script>
+    // Show a "working" state on forms that call the LLM (they can take a minute).
+    document.querySelectorAll("form[data-busy]").forEach(function (form) {
+      form.addEventListener("submit", function () {
+        var button = form.querySelector("button");
+        button.disabled = true;
+        button.textContent = form.dataset.busy;
+      });
+    });
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

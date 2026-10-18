@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% set page = "home" %}
+{% block title %}Documents · RAG PDF Assistant{% endblock %}
+
+{% block content %}
+<h1>Documents</h1>
+<p class="lead">Upload a PDF. It is split into chunks with page numbers, embedded and stored in ChromaDB.
+  Then search it semantically or generate multiple-choice questions from it.</p>
+
+<section class="card">
+  <h2>Stored documents</h2>
+  {% if documents %}
+  <table class="table">
+    <thead><tr><th>File</th><th>Chunks</th><th>Questions</th><th></th></tr></thead>
+    <tbody>
+    {% for doc in documents %}
+      <tr>
+        <td>{{ doc.name }}</td>
+        <td>{{ doc.chunks }}</td>
+        <td>{{ doc.questions }}</td>
+        <td class="row-actions">
+          <a href="{{ links.search }}?source={{ doc.name | urlencode }}">Search</a>
+          <a href="{{ links.questions }}?source={{ doc.name | urlencode }}">Questions</a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No documents yet. Ingest the samples or upload a PDF.</p>
+  {% endif %}
+</section>
+
+{% if not static_export %}
+<div class="grid-2">
+  <section class="card">
+    <h2>Upload a PDF</h2>
+    <form action="/upload" method="post" enctype="multipart/form-data" data-busy="Processing…">
+      <input type="file" name="file" accept="application/pdf" required>
+      <button type="submit">Upload &amp; ingest</button>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Sample PDFs</h2>
+    <p class="muted">Re-ingest every PDF in <code>{{ settings.samples_dir.name }}/</code>.</p>
+    <form action="/ingest-samples" method="post" data-busy="Ingesting…">
+      <button type="submit" class="secondary">Ingest samples</button>
+    </form>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Configuration</h2>
+  <dl class="config">
+    <dt>LLM</dt><dd>{{ settings.llm_provider }} · <code>{{ settings.ollama_llm_model }}</code></dd>
+    <dt>Embeddings</dt><dd><code>{{ settings.ollama_embedding_model }}</code></dd>
+    <dt>Chunking</dt><dd>{{ settings.chunk_size }} chars, {{ settings.chunk_overlap }} overlap</dd>
+    <dt>Vector DB</dt><dd>ChromaDB at <code>{{ settings.chroma_dir.name }}/</code></dd>
+  </dl>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.venv-*/
+venv/
+
+# Local data (re-created by ingestion)
+chroma_db/
+uploads/
+
+# Secrets / local config
+.env
+
+# Editors
+.vscode/
+.idea/

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% set page = "search" %}
+{% block title %}Semantic Search · RAG PDF Assistant{% endblock %}
+
+{% block content %}
+<h1>Semantic Search</h1>
+<p class="lead">Ask in your own words. The query is embedded and compared with every stored chunk,
+  so matches are found by meaning, not exact keywords.</p>
+
+{% if not static_export %}
+<form class="search-form" action="{{ links.search }}" method="get">
+  <input type="search" name="q" value="{{ query }}" placeholder="e.g. What does the CPU do?" autofocus>
+  {% if sources | length > 1 %}
+  <select name="source">
+    <option value="">All documents</option>
+    {% for s in sources %}<option value="{{ s }}" {{ 'selected' if s == source }}>{{ s }}</option>{% endfor %}
+  </select>
+  {% elif source %}<input type="hidden" name="source" value="{{ source }}">{% endif %}
+  <button type="submit">Search</button>
+</form>
+
+<div class="chips">
+  <span class="muted">Try:</span>
+  {% for sq in sample_queries %}
+  <a class="chip" href="{{ links.search }}?q={{ sq | urlencode }}">{{ sq }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% for item in searches %}
+<section class="search-block">
+  <h2 class="query">“{{ item.query }}”</h2>
+  {% if item.results %}
+    {% for r in item.results %}
+    <article class="card result">
+      <div class="result-head">
+        <span class="rank">#{{ loop.index }}</span>
+        <span class="badge">Page {{ r.page }}</span>
+        <span class="muted small">{{ r.source }} · chunk {{ r.chunk_index }}</span>
+        <span class="score" title="Cosine similarity">
+          <span class="bar"><span style="width: {{ r.score_percent }}%"></span></span>
+          {{ r.score_percent }}%
+        </span>
+      </div>
+      <p class="passage">{{ r.text }}</p>
+    </article>
+    {% endfor %}
+  {% else %}
+    <p class="muted">No matching passages. Have you ingested a document?</p>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}
