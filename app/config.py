@@ -23,7 +23,7 @@ def _env(name: str, default: str) -> str:
 class Settings:
     # --- LLM / embeddings (Google Gemini API) ---
     llm_provider: str = _env("LLM_MODEL", "Gemini")
-    google_api_key: str = _env("GOOGLE_API_KEY", "")
+    # GOOGLE_API_KEY is read (and re-read) by app/llm.py, so it is not cached here.
     gemini_llm_model: str = _env("GEMINI_LLM_MODEL", "gemini-3.5-flash")
     gemini_embedding_model: str = _env("GEMINI_EMBEDDING_MODEL", "gemini-embedding-2")
     embedding_dimensions: int = int(_env("EMBEDDING_DIMENSIONS", "768"))

@@ -28,6 +28,18 @@
     <p class="notice">Static sample output, generated {{ generated_at }} with
       <code>{{ model }}</code>. Run the web app for live results.</p>
     {% endif %}
+    {% if api_key_missing and not static_export %}
+    <section class="key-banner" role="alert">
+      <h2>Please provide a Gemini API key</h2>
+      <p>Search, ingesting PDFs and question generation use the Google Gemini API, and no API key is set.</p>
+      <ol>
+        <li>Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.</li>
+        <li>Open the <code>.env</code> file in the project folder (copy <code>.env.example</code> if it doesn’t exist).</li>
+        <li>Add this line, then save the file and reload this page: <code>GOOGLE_API_KEY=your-key</code></li>
+      </ol>
+      <p class="small">Documents and questions already stored can still be viewed.</p>
+    </section>
+    {% endif %}
     {% if message %}<p class="flash ok">{{ message }}</p>{% endif %}
     {% if error %}<p class="flash err">{{ error }}</p>{% endif %}
 

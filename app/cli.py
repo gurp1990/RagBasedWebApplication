@@ -21,6 +21,7 @@ from app import vector_store
 from app.config import settings
 from app.ingestion import ingest_pdf, ingest_samples
 from app.question_generator import generate_questions
+from app.llm import MissingApiKeyError
 from app.rate_limit import RateLimitError
 from app.semantic_search import SAMPLE_QUERIES, search
 
@@ -135,7 +136,7 @@ def main() -> None:
     args = parser.parse_args()
     try:
         args.func(args)
-    except RateLimitError as error:
+    except (RateLimitError, MissingApiKeyError) as error:
         raise SystemExit(f"Stopped: {error}") from None
 
 

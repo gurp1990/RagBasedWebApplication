@@ -52,6 +52,7 @@
 <section class="card">
   <h2>Configuration</h2>
   <dl class="config">
+    <dt>API key</dt><dd>{% if api_key_missing %}<strong class="key-missing">missing</strong> (set <code>GOOGLE_API_KEY</code> in <code>.env</code>){% else %}set{% endif %}</dd>
     <dt>LLM</dt><dd>{{ settings.llm_provider }} · <code>{{ settings.gemini_llm_model }}</code></dd>
     <dt>Embeddings</dt><dd><code>{{ settings.gemini_embedding_model }}</code> · {{ settings.embedding_dimensions }} dimensions</dd>
     <dt>Min relevance</dt><dd>{{ (settings.min_relevance_score * 100) | round | int }}% (lower scores = not in document)</dd>

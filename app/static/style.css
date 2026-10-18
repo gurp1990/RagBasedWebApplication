@@ -68,6 +68,18 @@ nav a.active, nav a:hover { color: var(--accent); background: var(--accent-soft)
 .flash { padding: 10px 14px; border-radius: 8px; }
 .flash.ok { background: var(--ok-soft); color: var(--ok); }
 .flash.err { background: var(--bad-soft); color: var(--bad); }
+.key-banner {
+  margin-top: 20px;
+  padding: 14px 18px;
+  border: 1px solid var(--bad);
+  border-left-width: 5px;
+  border-radius: 8px;
+  background: var(--bad-soft);
+}
+.key-banner h2 { color: var(--bad); margin-bottom: 6px; }
+.key-banner p, .key-banner ol { margin: 0 0 6px; }
+.key-banner ol { padding-left: 20px; }
+.key-banner .small { color: var(--muted); margin: 0; }
 .notice { background: var(--accent-soft); padding: 10px 14px; border-radius: 8px; margin-top: 20px; }
 
 button {
@@ -150,3 +162,4 @@ form.inline { display: inline-flex; gap: 8px; margin: 0; }
 blockquote { margin: 0 0 10px; padding: 6px 12px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 6px 6px 0; }
 details summary { cursor: pointer; color: var(--accent); font-size: 0.9rem; }
 details .passage { margin-top: 8px; padding: 10px 12px; background: var(--bg); border-radius: 8px; font-size: 0.9rem; }
+.key-missing { color: var(--bad); }

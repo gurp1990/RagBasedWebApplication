@@ -31,6 +31,7 @@ from fastapi.templating import Jinja2Templates
 from app import vector_store
 from app.config import settings
 from app.ingestion import ingest_pdf, ingest_samples
+from app.llm import MissingApiKeyError, api_key_configured
 from app.question_generator import generate_questions
 from app.rate_limit import RateLimitError
 from app.semantic_search import SAMPLE_QUERIES, search
@@ -41,11 +42,16 @@ log = logging.getLogger(__name__)
 
 APP_DIR = Path(__file__).parent
 WEB_LINKS = {"home": "/", "search": "/search", "questions": "/questions"}
+NEEDS_KEY = "{} needs a Gemini API key. See the message at the top of the page."
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     """On first start, ingest the sample PDFs so the app is usable immediately."""
+    if not api_key_configured():
+        log.warning("%s", MissingApiKeyError())
+        yield
+        return
     try:
         if not vector_store.list_sources():
             log.info("Empty database - ingesting sample PDFs: %s", ingest_samples())
@@ -72,7 +78,14 @@ def rate_limit_handler(_: Request, error: RateLimitError) -> JSONResponse:
     )
 
 
+@app.exception_handler(MissingApiKeyError)
+def missing_key_handler(_: Request, error: MissingApiKeyError) -> JSONResponse:
+    """API calls that need Gemini answer 503 with instructions while no key is set."""
+    return JSONResponse(status_code=503, content={"error": "missing_api_key", "message": str(error)})
+
+
 def render(request: Request, template: str, **context):
+    context.setdefault("api_key_missing", not api_key_configured())
     context.setdefault("links", WEB_LINKS)
     context.setdefault("message", request.query_params.get("message"))
     context.setdefault("error", request.query_params.get("error"))
@@ -114,6 +127,8 @@ def search_page(request: Request, q: str = "", source: str = ""):
             searches = [{"query": q, "results": search(q, source=source or None)}]
         except RateLimitError as rate_limit:
             error = str(rate_limit)
+        except MissingApiKeyError:
+            error = NEEDS_KEY.format("Search")
     return render(
         request, "search.html",
         query=q, source=source, searches=searches, error=error,
@@ -138,6 +153,8 @@ def questions_page(request: Request, source: str | None = None):
 def upload_pdf(file: UploadFile = File(...)):
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         return redirect("/", error="Please choose a PDF file.")
+    if not api_key_configured():
+        return redirect("/", error=NEEDS_KEY.format("Uploading a PDF"))
     settings.upload_dir.mkdir(parents=True, exist_ok=True)
     target = settings.upload_dir / Path(file.filename).name
     with target.open("wb") as out:
@@ -154,6 +171,8 @@ def upload_pdf(file: UploadFile = File(...)):
 
 @app.post("/ingest-samples")
 def ingest_sample_pdfs():
+    if not api_key_configured():
+        return redirect("/", error=NEEDS_KEY.format("Ingesting"))
     try:
         result = ingest_samples()
     except RateLimitError as error:
@@ -167,6 +186,8 @@ def ingest_sample_pdfs():
 @app.post("/questions/generate")
 def generate(source: str = Form(...)):
     url = f"/questions?source={quote(source)}"
+    if not api_key_configured():
+        return redirect(url, error=NEEDS_KEY.format("Generating questions"))
     try:
         questions = generate_questions(source)
     except RateLimitError as error:

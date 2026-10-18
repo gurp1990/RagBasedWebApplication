@@ -25,7 +25,7 @@ from pydantic import BaseModel, Field
 
 from app import vector_store
 from app.config import settings
-from app.llm import get_llm
+from app.llm import MissingApiKeyError, get_llm
 from app.prompts import QUESTION_PROMPT, VERIFY_PROMPT
 from app.rate_limit import RateLimitError, call_with_retry
 
@@ -63,6 +63,7 @@ def generate_questions(source: str, count: int | None = None) -> list[dict]:
     the previous questions stay in ChromaDB untouched.
     """
     count = count or settings.num_questions
+    get_llm()  # fail fast with MissingApiKeyError before any work is done
     chunks = vector_store.get_chunks(source)
     if not chunks:
         raise ValueError(f"Document '{source}' has not been ingested yet.")
@@ -104,8 +105,8 @@ def generate_one(chunk: Document, existing: list[dict]) -> dict | None:
                 problem = "blind answer disagrees"
             log.info("Rejected draft (chunk %s, attempt %d): %s",
                      chunk.metadata["chunk_index"], attempt, problem)
-        except RateLimitError:
-            raise  # quota exhausted: stop the whole run instead of burning attempts
+        except (RateLimitError, MissingApiKeyError):
+            raise  # retrying cannot help: stop the whole run instead of burning attempts
         except Exception as error:  # LLM or JSON errors: just try again
             log.warning("Attempt %d failed: %s", attempt, error)
     return None

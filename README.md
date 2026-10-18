@@ -263,7 +263,7 @@ RagBasedWebApplication/
 
 | Problem | Fix |
 |---|---|
-| `GOOGLE_API_KEY is not set` | Create `.env` from `.env.example` and add your key |
+| Red banner "Please provide a Gemini API key" | No key is set, or it is still the `.env.example` placeholder. Add `GOOGLE_API_KEY=<your key>` to `.env` and reload the page; no restart is needed. Stored documents and questions stay viewable meanwhile. The API answers `503 {"error": "missing_api_key"}`, and the CLI prints `Stopped: Please provide a Gemini API key…` |
 | `400 API key not valid` / `403 PERMISSION_DENIED` | Check the key in `.env`, with no quotes or spaces, or create a new key in AI Studio |
 | `404 NOT_FOUND … model … is no longer available` | Google retired that model. Set `GEMINI_LLM_MODEL` to a current one from the model list |
 | "The Gemini API rate limit was reached" | Wait the time shown and try again. See [Rate limits](#rate-limits) |
