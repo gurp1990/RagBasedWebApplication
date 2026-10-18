@@ -34,6 +34,7 @@ Detailed diagrams, including the RAG function map and the database ER diagram, a
 |---|---|
 | `config.py` | All settings, read from environment variables / `.env`. |
 | `llm.py` | Creates the Gemini chat model and embedding model from `GOOGLE_API_KEY`. This is the only place to change to switch providers. |
+| `rate_limit.py` | Detects Gemini `429 RESOURCE_EXHAUSTED` errors, waits and retries per-minute limits, and raises `RateLimitError` with a clear message. |
 | `document_processor.py` | Extracts text page by page with `pypdf`. Cleans it (bullets, wrapped lines). Splits it with LangChain's `RecursiveCharacterTextSplitter`. Every chunk keeps `source`, `page` and `chunk_index`. |
 | `vector_store.py` | Everything ChromaDB: two persistent collections (`documents`, `questions`) using cosine distance. Saving, reading, similarity search and replacing data by source file. |
 | `ingestion.py` | Pipeline: PDF → chunks → ChromaDB. Re-ingesting a file replaces its old chunks. |
@@ -79,8 +80,11 @@ Detailed diagrams, including the RAG function map and the database ER diagram, a
 * **Hosted models, local data:** Gemini serves both the LLM and the embeddings (no GPU or
   model download needed). ChromaDB persists locally to `./chroma_db_gemini`. The API key is
   read from `.env`, which Git ignores. PDF text and queries are sent to the Gemini API.
-* **Rate limits:** the Gemini client retries with back-off (`LLM_MAX_RETRIES`), so free-tier
-  limits slow question generation down instead of failing it.
+* **Rate limits:** every Gemini call (embeddings and LLM) goes through `call_with_retry()` in
+  `rate_limit.py`. Per-minute `429` errors are retried after the delay Google suggests;
+  daily limits stop at once. Callers get a `RateLimitError` with a user-facing message.
+  Stored data is replaced only after a successful write: chunks are upserted before stale
+  ones are deleted, and questions are saved only when a whole run succeeds.
 * **LangChain is used where it helps:** text splitting, the Chroma and Gemini integrations,
   prompt templates and structured output. Plain Python handles everything else.
 * **Easy to change:** settings are in `.env`, prompts in `prompts.py`, and providers in

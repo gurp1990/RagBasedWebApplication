@@ -28,7 +28,7 @@ class Settings:
     gemini_embedding_model: str = _env("GEMINI_EMBEDDING_MODEL", "gemini-embedding-2")
     embedding_dimensions: int = int(_env("EMBEDDING_DIMENSIONS", "768"))
     llm_temperature: float = float(_env("LLM_TEMPERATURE", "0.2"))
-    llm_max_retries: int = int(_env("LLM_MAX_RETRIES", "6"))  # rides out API rate limits
+    llm_max_retries: int = int(_env("LLM_MAX_RETRIES", "4"))  # retries per call on a per-minute rate limit
 
     # --- Document processing ---
     chunk_size: int = int(_env("CHUNK_SIZE", "500"))

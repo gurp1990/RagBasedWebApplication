@@ -24,7 +24,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -32,6 +32,7 @@ from app import vector_store
 from app.config import settings
 from app.ingestion import ingest_pdf, ingest_samples
 from app.question_generator import generate_questions
+from app.rate_limit import RateLimitError
 from app.semantic_search import SAMPLE_QUERIES, search
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
@@ -48,6 +49,8 @@ async def lifespan(_: FastAPI):
     try:
         if not vector_store.list_sources():
             log.info("Empty database - ingesting sample PDFs: %s", ingest_samples())
+    except RateLimitError as error:
+        log.error("Could not ingest samples: %s", error)
     except Exception as error:
         log.error("Could not ingest samples (is GOOGLE_API_KEY set in .env?): %s", error)
     yield
@@ -56,6 +59,17 @@ async def lifespan(_: FastAPI):
 app = FastAPI(title="RAG PDF Question Generator", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=APP_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=APP_DIR / "templates")
+
+
+@app.exception_handler(RateLimitError)
+def rate_limit_handler(_: Request, error: RateLimitError) -> JSONResponse:
+    """Any rate-limit error not handled by a page becomes HTTP 429 with a Retry-After header."""
+    headers = {"Retry-After": str(round(error.retry_after))} if error.retry_after else {}
+    return JSONResponse(
+        status_code=429,
+        content={"error": "rate_limit", "daily_quota": error.daily, "message": str(error)},
+        headers=headers,
+    )
 
 
 def render(request: Request, template: str, **context):
@@ -94,10 +108,15 @@ def home(request: Request):
 
 @app.get("/search")
 def search_page(request: Request, q: str = "", source: str = ""):
-    searches = [{"query": q, "results": search(q, source=source or None)}] if q.strip() else []
+    searches, error = [], None
+    if q.strip():
+        try:
+            searches = [{"query": q, "results": search(q, source=source or None)}]
+        except RateLimitError as rate_limit:
+            error = str(rate_limit)
     return render(
         request, "search.html",
-        query=q, source=source, searches=searches,
+        query=q, source=source, searches=searches, error=error,
         sources=vector_store.list_sources(), sample_queries=SAMPLE_QUERIES,
         min_score=settings.min_relevance_score,
     )
@@ -125,6 +144,9 @@ def upload_pdf(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, out)
     try:
         count = ingest_pdf(target)
+    except RateLimitError as error:
+        return redirect("/", error=f"{error} {target.name} was not ingested; "
+                                   "any earlier version of it is unchanged.")
     except Exception as error:
         return redirect("/", error=f"Could not process {target.name}: {error}")
     return redirect("/", message=f"Ingested {target.name}: {count} chunks stored in ChromaDB.")
@@ -134,6 +156,8 @@ def upload_pdf(file: UploadFile = File(...)):
 def ingest_sample_pdfs():
     try:
         result = ingest_samples()
+    except RateLimitError as error:
+        return redirect("/", error=f"{error} Documents already stored are unchanged.")
     except Exception as error:
         return redirect("/", error=f"Ingestion failed: {error}")
     summary = ", ".join(f"{name} ({n} chunks)" for name, n in result.items()) or "no PDFs found"
@@ -145,6 +169,8 @@ def generate(source: str = Form(...)):
     url = f"/questions?source={quote(source)}"
     try:
         questions = generate_questions(source)
+    except RateLimitError as error:
+        return redirect(url, error=f"{error} Your previous questions were kept.")
     except Exception as error:
         return redirect(url, error=f"Question generation failed: {error}")
     return redirect(url, message=f"Generated and stored {len(questions)} questions.")

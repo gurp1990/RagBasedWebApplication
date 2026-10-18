@@ -21,6 +21,7 @@ from app import vector_store
 from app.config import settings
 from app.ingestion import ingest_pdf, ingest_samples
 from app.question_generator import generate_questions
+from app.rate_limit import RateLimitError
 from app.semantic_search import SAMPLE_QUERIES, search
 
 APP_DIR = Path(__file__).parent
@@ -132,7 +133,10 @@ def main() -> None:
     p.set_defaults(func=cmd_export)
 
     args = parser.parse_args()
-    args.func(args)
+    try:
+        args.func(args)
+    except RateLimitError as error:
+        raise SystemExit(f"Stopped: {error}") from None
 
 
 if __name__ == "__main__":

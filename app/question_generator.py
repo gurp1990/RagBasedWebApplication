@@ -27,6 +27,7 @@ from app import vector_store
 from app.config import settings
 from app.llm import get_llm
 from app.prompts import QUESTION_PROMPT, VERIFY_PROMPT
+from app.rate_limit import RateLimitError, call_with_retry
 
 log = logging.getLogger(__name__)
 
@@ -54,7 +55,13 @@ class BlindAnswer(BaseModel):
 # ---------- public API ----------
 
 def generate_questions(source: str, count: int | None = None) -> list[dict]:
-    """Generate, verify and store `count` questions for a document."""
+    """
+    Generate, verify and store `count` questions for a document.
+
+    The stored questions are replaced only when the run succeeds. If the API
+    rate limit stops the run (RateLimitError) or no question passes the checks,
+    the previous questions stay in ChromaDB untouched.
+    """
     count = count or settings.num_questions
     chunks = vector_store.get_chunks(source)
     if not chunks:
@@ -64,10 +71,12 @@ def generate_questions(source: str, count: int | None = None) -> list[dict]:
     for chunk in candidate_passages(chunks, count):
         if len(questions) == count:
             break
-        question = generate_one(chunk, existing=questions)
+        question = generate_one(chunk, existing=questions)  # may raise RateLimitError
         if question:
             questions.append(question)
 
+    if not questions:
+        raise ValueError("No question passed the checks. Please try again.")
     vector_store.save_questions(source, questions)
     return questions
 
@@ -95,6 +104,8 @@ def generate_one(chunk: Document, existing: list[dict]) -> dict | None:
                 problem = "blind answer disagrees"
             log.info("Rejected draft (chunk %s, attempt %d): %s",
                      chunk.metadata["chunk_index"], attempt, problem)
+        except RateLimitError:
+            raise  # quota exhausted: stop the whole run instead of burning attempts
         except Exception as error:  # LLM or JSON errors: just try again
             log.warning("Attempt %d failed: %s", attempt, error)
     return None
@@ -104,25 +115,23 @@ def generate_one(chunk: Document, existing: list[dict]) -> dict | None:
 
 def _draft_question(chunk: Document, existing: list[dict]) -> QuestionDraft:
     chain = QUESTION_PROMPT | get_llm().with_structured_output(QuestionDraft)
-    return chain.invoke(
-        {
-            "context": chunk.page_content,
-            "page": chunk.metadata["page"],
-            "source": chunk.metadata["source"],
-            "existing_questions": "\n".join(f"- {q['question']}" for q in existing) or "- (none)",
-        }
-    )
+    inputs = {
+        "context": chunk.page_content,
+        "page": chunk.metadata["page"],
+        "source": chunk.metadata["source"],
+        "existing_questions": "\n".join(f"- {q['question']}" for q in existing) or "- (none)",
+    }
+    return call_with_retry(lambda: chain.invoke(inputs), "Question draft")
 
 
 def _blind_answer_matches(draft: QuestionDraft, options: list[str], chunk: Document) -> bool:
     chain = VERIFY_PROMPT | get_llm().with_structured_output(BlindAnswer)
-    result = chain.invoke(
-        {
-            "context": chunk.page_content,
-            "question": draft.question,
-            "options": "\n".join(f"{letter}) {o}" for letter, o in zip(LETTERS, options)),
-        }
-    )
+    inputs = {
+        "context": chunk.page_content,
+        "question": draft.question,
+        "options": "\n".join(f"{letter}) {o}" for letter, o in zip(LETTERS, options)),
+    }
+    result = call_with_retry(lambda: chain.invoke(inputs), "Blind answer check")
     return options[LETTERS.index(result.answer)] == draft.correct_answer
 
 

@@ -132,7 +132,7 @@ Only `GOOGLE_API_KEY` is required.
 | `GEMINI_EMBEDDING_MODEL` | `gemini-embedding-2` | Embedding model |
 | `EMBEDDING_DIMENSIONS` | `768` | Vector size: `768`, `1536` or `3072` |
 | `LLM_TEMPERATURE` | `0.2` | Lower = more deterministic |
-| `LLM_MAX_RETRIES` | `6` | Retries with back-off when the API rate limit is hit |
+| `LLM_MAX_RETRIES` | `4` | Retries per Gemini call when a per-minute rate limit is hit (see [Rate limits](#rate-limits)) |
 | `CHUNK_SIZE` / `CHUNK_OVERLAP` | `500` / `80` | Chunk length and overlap in characters |
 | `CHROMA_DIR` | `chroma_db_gemini` | ChromaDB persistence folder (separate from the Ollama database on `main`) |
 | `DOCUMENTS_COLLECTION` / `QUESTIONS_COLLECTION` | `documents` / `questions` | ChromaDB collection names |
@@ -231,6 +231,7 @@ RagBasedWebApplication/
 ├── app/
 │   ├── config.py               settings (.env)
 │   ├── llm.py                  Gemini LLM + embeddings
+│   ├── rate_limit.py           Gemini 429 handling: wait, retry, clear messages
 │   ├── document_processor.py   PDF -> cleaned pages -> chunks (+ page metadata)
 │   ├── vector_store.py         ChromaDB collections: documents, questions
 │   ├── ingestion.py            PDF -> ChromaDB pipeline
@@ -265,9 +266,38 @@ RagBasedWebApplication/
 | `GOOGLE_API_KEY is not set` | Create `.env` from `.env.example` and add your key |
 | `400 API key not valid` / `403 PERMISSION_DENIED` | Check the key in `.env`, with no quotes or spaces, or create a new key in AI Studio |
 | `404 NOT_FOUND … model … is no longer available` | Google retired that model. Set `GEMINI_LLM_MODEL` to a current one from the model list |
-| `429 RESOURCE_EXHAUSTED` | The free-tier rate limit was hit. The app retries automatically (`LLM_MAX_RETRIES`). If it still fails, wait a minute and click *Regenerate* |
+| "The Gemini API rate limit was reached" | Wait the time shown and try again. See [Rate limits](#rate-limits) |
+| "The daily Gemini API quota … is used up" | The key's daily quota is used up. Try again after midnight Pacific Time, or use a key with a higher quota |
 | Search finds nothing after changing the embedding model | Delete `chroma_db_gemini/` and ingest again |
 | Fewer than 5 questions | Some drafts failed verification on every attempt. Click *Regenerate* |
 | Connection errors | Check your internet connection, and any proxy or firewall in front of `generativelanguage.googleapis.com` |
+
+### Rate limits
+
+The Gemini API limits how many requests a key may send per minute and per day; the free
+tier has the lowest limits. When a limit is hit, Google answers `429 RESOURCE_EXHAUSTED`.
+The app handles this in [app/rate_limit.py](app/rate_limit.py):
+
+| Situation | What the app does |
+|---|---|
+| Per-minute limit | Waits for the time Google suggests (max 60 s), then retries the same call, up to `LLM_MAX_RETRIES` times. The log shows `hit the rate limit (attempt 1/4), waiting 7s` |
+| Per-day limit | Stops at once, since retrying can't help until the quota resets |
+| Still limited after retries | Stops and shows a clear message: *"The Gemini API rate limit was reached. Please wait about N seconds and try again."* |
+
+Your data is never lost by a rate limit:
+
+* **Question generation:** the previous 5 questions stay stored and visible ("Your previous
+  questions were kept"). They are replaced only after a complete, successful run.
+* **Ingest / upload:** new chunks are written before old ones are removed, so a failed
+  ingest leaves the earlier version of the PDF searchable.
+* **Search page:** shows the message instead of an error page.
+* **JSON API:** returns HTTP `429` with a `Retry-After` header and
+  `{"error": "rate_limit", "daily_quota": false, "message": "..."}`.
+* **Command line:** prints `Stopped: <message>` instead of a traceback.
+
+Question generation makes about 10–15 Gemini calls per run (a draft and a check per
+question, plus retries for rejected drafts). If you often hit the limit, check your key's
+limits in Google AI Studio. Then switch to a model with higher limits (set
+`GEMINI_LLM_MODEL`), or use a paid key.
 
 Tables in PDFs are extracted as plain lines (a `pypdf` limitation), so column structure is lost.

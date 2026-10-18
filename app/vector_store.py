@@ -39,13 +39,19 @@ def questions_store() -> Chroma:
 # ---------- documents ----------
 
 def save_chunks(chunks: list[Document]) -> int:
-    """Store chunks, replacing any earlier version of the same source file."""
+    """
+    Store chunks, replacing any earlier version of the same source file.
+
+    New chunks are written first (upsert by id) and old leftovers removed
+    afterwards, so if embedding fails (e.g. API rate limit) the previous
+    version of the document is still there.
+    """
     if not chunks:
         return 0
     source = chunks[0].metadata["source"]
-    delete_by_source(documents_store(), source)
     ids = [f"{c.metadata['source']}::chunk-{c.metadata['chunk_index']}" for c in chunks]
     documents_store().add_documents(chunks, ids=ids)
+    delete_by_source(documents_store(), source, keep=set(ids))
     return len(chunks)
 
 
@@ -77,15 +83,15 @@ def similarity_search(
 # ---------- questions ----------
 
 def save_questions(source: str, questions: list[dict]) -> None:
-    """Replace all stored questions for a source with a new set."""
+    """Replace all stored questions for a source with a new set (written first, then old ones removed)."""
     store = questions_store()
-    delete_by_source(store, source)
-    if not questions:
-        return
     ids = [f"{source}::q-{i}" for i in range(len(questions))]
-    texts = [q["question"] for q in questions]
-    metadatas = [{**_flatten_question(q), "source": source, "number": i + 1} for i, q in enumerate(questions)]
-    store.add_texts(texts=texts, metadatas=metadatas, ids=ids)
+    if questions:
+        texts = [q["question"] for q in questions]
+        metadatas = [{**_flatten_question(q), "source": source, "number": i + 1}
+                     for i, q in enumerate(questions)]
+        store.add_texts(texts=texts, metadatas=metadatas, ids=ids)
+    delete_by_source(store, source, keep=set(ids))
 
 
 def get_questions(source: str) -> list[dict]:
@@ -97,10 +103,11 @@ def get_questions(source: str) -> list[dict]:
 
 # ---------- helpers ----------
 
-def delete_by_source(store: Chroma, source: str) -> None:
-    existing = store.get(where={"source": source}, include=[])["ids"]
-    if existing:
-        store.delete(ids=existing)
+def delete_by_source(store: Chroma, source: str, keep: set[str] = frozenset()) -> None:
+    """Delete every record of `source` except the ids in `keep`."""
+    stale = [i for i in store.get(where={"source": source}, include=[])["ids"] if i not in keep]
+    if stale:
+        store.delete(ids=stale)
 
 
 # ChromaDB metadata only accepts flat values, so the option list is stored

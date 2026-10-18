@@ -1019,6 +1019,7 @@ The smallest unit is a bit…</td><td>Chunk text (≈500 chars) shown in search 
         <thead><tr><th>File</th><th>Job</th><th>Main functions</th></tr></thead>
         <tbody>
           <tr><td>config.py</td><td>Settings from <code>.env</code></td><td><span class="fn">Settings</span><span class="fn">settings</span></td></tr>
+          <tr><td>rate_limit.py</td><td>Gemini 429 handling</td><td><span class="fn">call_with_retry()</span><span class="fn">is_rate_limit_error()</span><span class="fn">suggested_wait()</span><span class="fn">RateLimitError</span></td></tr>
           <tr><td>llm.py</td><td>Gemini models</td><td><span class="fn">get_llm()</span><span class="fn">get_embeddings()</span><span class="fn">_api_key()</span></td></tr>
           <tr><td>document_processor.py</td><td>PDF → clean chunks</td><td><span class="fn">process_pdf()</span><span class="fn">load_pdf()</span><span class="fn">clean_text()</span><span class="fn">split_into_chunks()</span></td></tr>
           <tr><td>ingestion.py</td><td>PDF → ChromaDB</td><td><span class="fn">ingest_pdf()</span><span class="fn">ingest_samples()</span></td></tr>
